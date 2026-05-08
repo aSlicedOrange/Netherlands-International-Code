@@ -18,8 +18,8 @@ public class SM_Auto extends OpMode{
     private DcMotorEx backRight;
     private DcMotorEx backLeft;
 
-    private DcMotorEx LflywheelMotor;
-    private DcMotorEx RflywheelMotor;
+    private DcMotorEx flywheelMotorL;
+    private DcMotorEx flywheelMotorR;
 
 
     private enum state {
