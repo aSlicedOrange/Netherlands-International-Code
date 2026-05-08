@@ -47,14 +47,15 @@ public class SM_Auto extends OpMode{
     }
     
     public double getRotatePower(double heading) {
+        double minRotateDifference = 0.1;
+
         
         
     }
     
     public void moveRobot(double forward, double strafe, double heading) {
-        
-        double rotate = ;
 
+        double rotate = getRotatePower(heading);
         
         pose2D pos = odo.getPosition();
         double heading = pos.getHeading(AngleUnit.RADIANS);
