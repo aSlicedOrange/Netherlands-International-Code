@@ -49,7 +49,10 @@ public class SM_Auto extends OpMode{
     public double getRotatePower(double heading) {
         double minRotateDifference = 0.1;
 
-        
+        pose2D pos = odo.getPosition();
+        double curHeading = pos.getHeading(AngleUnit.DEGREES);
+
+                
         
     }
     
