@@ -52,7 +52,9 @@ public class SM_Auto extends OpMode{
         pose2D pos = odo.getPosition();
         double curHeading = pos.getHeading(AngleUnit.DEGREES);
 
-                
+        if (heading < 0) {
+            
+        }
         
     }
     
