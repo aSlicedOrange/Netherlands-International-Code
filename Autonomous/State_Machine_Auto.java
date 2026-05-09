@@ -31,6 +31,100 @@ public class SM_Auto extends OpMode{
         MOVE_TO_BALL2
     }
 
+    public double[] getRotatePower(double currentHeading, double targetHeading) {
+        double minDegreeDifference = 0.1;
+        double errorHeading = targetHeading - currentHeading;
+
+        
+        double divRotateDifference = 10.0;
+        double divRatio = errorHeading / divRotateDifference;
+        double maxPower = 1;
+        
+        double motorPower = Math.min(Math.abs(divRatio), maxPower) * Math.signum(errorHeading);
+
+        
+        double[] rotateMotorPower = {0.0, 0.0, 0.0, 0.0};
+        if (!(Math.abs(errorHeading) < minDegreeDifference)) {
+            rotateMotorPower[0] = motorPower; //fL
+            rotateMotorPower[1] = -motorPower; //fR
+            rotateMotorPower[2] = motorPower; //bL
+            rotateMotorPower[3] = -motorPower; //bR
+        }
+
+        return (rotateMotorPower)
+    }
+
+    public double[] getForwardPower(double currentY, double targetY) {
+        double minYDifference = 0.5;
+        double errorY = targetY - currentY;
+
+        double divYDifference = 150.0;
+        double divRatio = errorY / divYDifference;
+        double maxPower = 1;
+
+        double motorPower = Math.min(Math.abs(divRatio), maxPower) * Math.signum(errorY);
+
+        
+        double[] forwardMotorPower = {0.0, 0.0, 0.0, 0.0};
+        if (!(Math.abs(errorY) < minYDifference)) {
+            forwardMotorPower[0] = motorPower; //fL
+            forwardMotorPower[1] = motorPower; //fR
+            forwardMotorPower[2] = motorPower; //bL
+            forwardMotorPower[3] = motorPower; //bR
+        }
+
+        return (forwardMotorPower)
+
+    }
+
+
+    public double[] getStrafePower(double currentX, double targetX) {
+        double minXDifference = 0.5;
+        double errorX = targetX - currentX;
+
+        double divXDifference = 150.0;
+        double divRatio = errorX / divXDifference;
+        double maxPower = 1;
+
+        double motorPower = Math.min(Math.abs(divRatio), maxPower) * Math.signum(errorX);
+
+        
+        double[] strafeMotorPower = {0.0, 0.0, 0.0, 0.0};
+        if (!(Math.abs(errorX) < minXDifference)) {
+            strafeMotorPower[0] = motorPower; //fL
+            strafeMotorPower[1] = -motorPower; //fR
+            strafeMotorPower[2] = -motorPower; //bL
+            strafeMotorPower[3] = motorPower; //bR
+        }
+
+        return (strafeMotorPower)
+
+    }
+    
+    public void moveRobot(double targetX, double targetY, double targetHeading) {
+        pose2D pos = odo.getPosition();
+        double currentHeading = pos.getHeading(AngleUnit.DEGREES);
+        double currentX = pos.getX(DistanceUnit.MM);
+        double currentY = pos.getY(DistanceUnit.MM);
+        
+        double[] Forward = getForwardStrafePower(currentY, targetY)
+        double[] Strafe = getStrafePower(currentX, targetX)
+        double[] Rotate = getRotatePower(currentHeading, targetHeading);
+
+            
+        double[] newWheelSpeeds = new double[4];
+        
+        newWheelSpeeds[0] = Forward[0] + Strafe[0] + Rotate[0];
+        newWheelSpeeds[1] = Forward[1] - Strafe[1] - Rotate[1];
+        newWheelSpeeds[2] = Forward[2] - Strafe[2] + Rotate[2];
+        newWheelSpeeds[3] = Forward[3] + Strafe[3] - Rotate[3];
+
+        frontLeft.setPower(newWheelSpeeds[0]);
+        frontRight.setPower(newWheelSpeeds[1]);
+        backLeft.setPower(newWheelSpeeds[2]);
+        backRight.setPower(newWheelSpeeds[3]);
+    }
+    
     @Override
     public void init(){
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo")
@@ -45,46 +139,6 @@ public class SM_Auto extends OpMode{
         odo.setPosition(startingPosition)
 
     }
-    
-    public double getRotatePower(double heading) {
-        double minRotateDifference = 0.1;
-
-        pose2D pos = odo.getPosition();
-        double curHeading = pos.getHeading(AngleUnit.DEGREES);
-
-        if (heading < 0) {
-            
-        }
-        
-    }
-    
-    public void moveRobot(double forward, double strafe, double heading) {
-
-        double rotate = getRotatePower(heading);
-        
-        pose2D pos = odo.getPosition();
-        double heading = pos.getHeading(AngleUnit.RADIANS);
-
-        double cosAngle = Math.cos((Math.PI / 2) - heading);
-        double sinAngle = Math.sin((Math.PI / 2) - heading);
-
-        double globalStrafe = -forward * sinAngle + strafe * cosAngle;
-        double globalForward = forward * sinAngle + strafe * cosAngle;
-
-        //Array for drive motors
-        double[] newWheelSpeeds = new double[4];
-
-        newWheelSpeeds[0] = globalForward + globalStrafe + rotate;
-        newWheelSpeeds[1] = globalForward - globalStrafe - rotate;
-        newWheelSpeeds[2] = globalForward - globalStrafe + rotate;
-        newWheelSpeeds[3] = globalForward + globalStrafe - rotate;
-
-        frontLeft.setPower(newWheelSpeeds[0]);
-        frontRight.setPower(newWheelSpeeds[1]);
-        backLeft.setPower(newWheelSpeeds[2]);
-        backRight.setPower(newWheelSpeeds[3]);
-    }
-
     @Override
     public void loop(){
 
