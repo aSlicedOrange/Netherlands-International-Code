@@ -31,6 +31,12 @@ public class SM_Auto extends OpMode{
         MOVE_TO_BALL2
     }
 
+    //For Testing
+    private double deltaHeading = 0;
+    private double deltaX = 0;
+    private double deltaY = 0;
+    
+
     public double[] getRotatePower(double currentHeading, double targetHeading) {
         double minDegreeDifference = 0.1;
         double errorHeading = targetHeading - currentHeading;
@@ -137,9 +143,49 @@ public class SM_Auto extends OpMode{
         odo.resetPosAndIMU();
         Pose2D startingPosition = new Pose2D(DistanceUnit.MM, x, y, AngleUnit.RADIANS, 0)//Set the x and y values for the starting pos (depends on where you start) and heading
         odo.setPosition(startingPosition)
-
+        
     }
     @Override
     public void loop(){
+        //Testing code
+        pose2D pos = odo.getPosition();
+        double currentHeading = pos.getHeading(AngleUnit.DEGREES);
+        double currentX = pos.getX(DistanceUnit.MM);
+        double currentY = pos.getY(DistanceUnit.MM);
+        
 
+        
+        if (gamepad1.dpad_left) {
+            targetX -= 200;
+        }
+        if (gamepad1.dpad_right) {
+            targetX += 200;
+        }
+        
+        if (gamepad1.dpad_up) {
+            targetY += 200;
+        }
+        if (gamepad1.dpad_down) {
+            targetY -= 200;
+        }
+        
+        if (gamepad1.left_bumper) {
+            targetHeading -= 10;
+        }
+        if (gamepad1.right_bumper) {
+            targetHeading += 10;
+        }
+
+
+    
+        
+        telemetry.addData("Delta Heading:", deltaHeading);
+        telemetry.addData("Delta X:", deltaX);
+        telemetry.addData("Delta Y:", deltaY);
+
+        if (gamepad1.a) {
+            telemetry.addData("Target Position Set");
+            moveRobot();
+        }
+        
     }
