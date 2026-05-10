@@ -196,7 +196,7 @@ public class SM_Auto extends OpMode{
             double targetY = currentY+deltaY;
             double targetHeading = currentHeading + deltaHeading;
             
-            while (moveRobot(targetX, targetY, targetHeading)) {
+            while (!(moveRobot(targetX, targetY, targetHeading))) {
                 telemetry.addLine("Moving to Position");
                 if (gamepad1.y) {
                     break
