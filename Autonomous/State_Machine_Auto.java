@@ -107,7 +107,7 @@ public class SM_Auto extends OpMode{
 
     }
     
-    public void moveRobot(double targetX, double targetY, double targetHeading) {
+    public boolean moveRobot(double targetX, double targetY, double targetHeading) {
         pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
@@ -129,6 +129,12 @@ public class SM_Auto extends OpMode{
         frontRight.setPower(newWheelSpeeds[1]);
         backLeft.setPower(newWheelSpeeds[2]);
         backRight.setPower(newWheelSpeeds[3]);
+
+        if (newWheelSpeeds[0] = 0 && newWheelSpeeds[1] = 0 && newWheelSpeeds[2] = 0 && newWheelSpeeds[3] = 0) {
+            return true
+        } else {
+            return false
+        }
     }
     
     @Override
@@ -179,13 +185,30 @@ public class SM_Auto extends OpMode{
 
     
         
-        telemetry.addData("Delta Heading:", deltaHeading);
+        
         telemetry.addData("Delta X:", deltaX);
         telemetry.addData("Delta Y:", deltaY);
+        telemetry.addData("Delta Heading:", deltaHeading);
 
         if (gamepad1.a) {
             telemetry.addData("Target Position Set");
-            moveRobot();
+            double targetX = currentX + deltaX;
+            double targetY = currentY+deltaY;
+            double targetHeading = currentHeading + deltaHeading;
+            
+            while (moveRobot(targetX, targetY, targetHeading)) {
+                telemetry.addLine("Moving to Position");
+                if (gamepad1.y) {
+                    break
+                }
+            }
+        }
+
+        if (gamepad1.x) {
+            telemetry.addData("Target Position Reset");
+            deltaX = 0;
+            deltaY = 0;
+            deltaHeading = 0;
         }
         
     }
