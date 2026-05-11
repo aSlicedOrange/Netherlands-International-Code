@@ -22,6 +22,8 @@ public class SM_Auto extends OpMode{
     private DcMotorEx flywheelMotorL;
     private DcMotorEx flywheelMotorR;
 
+    Flywheel flywheel;
+    
     GoBildaPinpointDriver odo;
 
 
@@ -38,6 +40,14 @@ public class SM_Auto extends OpMode{
         INTAKE_ON,
         INTAKE_OFF
     }
+
+    private enum testStates {
+        MOVE_TO_POS,
+        NONE
+    }
+
+    private testStates currentState = testStates.NONE;
+
 
     //For Testing
     private double deltaHeading = 0;
@@ -116,13 +126,13 @@ public class SM_Auto extends OpMode{
     }
     
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
-        pose2D pos = odo.getPosition();
+        Pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
         double currentY = pos.getY(DistanceUnit.MM);
         
-        double[] Forward = getForwardStrafePower(currentY, targetY)
-        double[] Strafe = getStrafePower(currentX, targetX)
+        double[] Forward = getForwardPower(currentY, targetY);
+        double[] Strafe = getStrafePower(currentX, targetX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
@@ -139,21 +149,21 @@ public class SM_Auto extends OpMode{
         backRight.setPower(newWheelSpeeds[3]);
 
         if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
-            return true
+            return true;
         } else {
-            return false
+            return false;
         }
     }
     
     @Override
     public void init(){
 
-        Flywheel flywheel = new Flywheel() //Class object with functions setVelocity(rpm) and setZero()
+        flywheel = new Flywheel(); //Class object with functions setVelocity(rpm) and setZero()
         
-        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo")
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         //Odometry Computer Configuration
-        odo.setOffsets( , ); //Offsets for where the opometry pods are on the robot
+        odo.setOffsets(-7.7008210429995145, 4.118370236374258); //Offsets for where the opometry pods are on the robot
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWING_ARM); //Check if correct, for what hardware ur using
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); //to tell encoder what positive direction is
 
@@ -173,24 +183,24 @@ public class SM_Auto extends OpMode{
 
         
         if (gamepad1.dpad_left) {
-            targetX -= 200;
+            deltaX -= 200;
         }
         if (gamepad1.dpad_right) {
-            targetX += 200;
+            deltaX += 200;
         }
         
         if (gamepad1.dpad_up) {
-            targetY += 200;
+            deltaY += 200;
         }
         if (gamepad1.dpad_down) {
-            targetY -= 200;
+            deltaY -= 200;
         }
         
         if (gamepad1.left_bumper) {
-            targetHeading -= 10;
+            deltaHeading -= 10;
         }
         if (gamepad1.right_bumper) {
-            targetHeading += 10;
+            deltaHeading += 10;
         }
 
 
@@ -206,27 +216,30 @@ public class SM_Auto extends OpMode{
             double targetX = currentX + deltaX;
             double targetY = currentY + deltaY;
             double targetHeading = currentHeading + deltaHeading;
-            
-            while (!(moveRobot(targetX, targetY, targetHeading))) {
-                telemetry.addLine("Moving to Position...");
-                telemetry.addData("Current X:", currentX, "Target X:", targetX);
-                telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
-                telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
-                pose2D pos = odo.getPosition();
-                double currentHeading = pos.getHeading(AngleUnit.DEGREES);
-                double currentX = pos.getX(DistanceUnit.MM);
-                double currentY = pos.getY(DistanceUnit.MM);
-                if (gamepad1.y) {
-                    break
-                }
-            }
-        }
-
-        if (gamepad1.x) {
-            telemetry.addData("Target Position Reset");
+            currentState = testStates.MOVE_TO_POS;
+        } else if (gamepad1.y) {
+            currentState = testStates.NONE;
+        } else if (gamepad1.x) {
             deltaX = 0;
             deltaY = 0;
             deltaHeading = 0;
         }
+
+        switch (currentState) {
+            case (MOVE_TO_POS):
+                if (!(moveTo())) {
+                telemetry.addLine("Moving to Position...");
+                telemetry.addData("Current X:", currentX, "Target X:", targetX);
+                telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
+                telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
+                } else {
+                    currentState = testStates.NONE
+                }
+        }
+        telemetry.addData("Current X:", currentX, "Target X:", targetX);
+        telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
+        telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
+
+
         
     }
