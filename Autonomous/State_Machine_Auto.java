@@ -60,10 +60,12 @@ public class State_Machine_Auto extends OpMode{
     private double deltaHeading = 0;
     private double deltaX = 0;
     private double deltaY = 0;
-    
+
+    private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+    private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
     public double[] getRotatePower(double currentHeading, double targetHeading) {
-        double minDegreeDifference = 0.1;
+        double minDegreeDifference = 0.5;
         double errorHeading = targetHeading - currentHeading;
 
         
@@ -86,7 +88,7 @@ public class State_Machine_Auto extends OpMode{
     }
 
     public double[] getForwardPower(double currentY, double targetY) {
-        double minYDifference = 0.5;
+        double minYDifference = 5.0;
         double errorY = targetY - currentY;
 
         double divYDifference = 150.0;
@@ -110,7 +112,7 @@ public class State_Machine_Auto extends OpMode{
 
 
     public double[] getStrafePower(double currentX, double targetX) {
-        double minXDifference = 0.5;
+        double minXDifference = 5.0;
         double errorX = targetX - currentX;
 
         double divXDifference = 150.0;
@@ -137,10 +139,22 @@ public class State_Machine_Auto extends OpMode{
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
         double currentY = pos.getY(DistanceUnit.MM);
-        
-        double[] Forward = getForwardPower(currentY, targetY);
-        double[] Strafe = getStrafePower(currentX, targetX);
+
+        double fieldErrorX = targetX - currentX;
+        double fieldErrorY = targetY - currentY;
+    
+        double headingRad = Math.toRadians(currentHeading);
+    
+        double robotErrorX = fieldErrorX * Math.cos(headingRad) + fieldErrorY * Math.sin(headingRad);
+        double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
+    
+        double[] Forward = getForwardPower(0, robotErrorY);
+        double[] Strafe = getStrafePower(0, robotErrorX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
+        
+        //double[] Forward = getForwardPower(currentY, targetY);
+        //double[] Strafe = getStrafePower(currentX, targetX);
+        //double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
         double[] newWheelSpeeds = new double[4];
@@ -150,6 +164,18 @@ public class State_Machine_Auto extends OpMode{
         newWheelSpeeds[2] = Forward[2] + Strafe[2] + Rotate[2];
         newWheelSpeeds[3] = Forward[3] + Strafe[3] + Rotate[3];
 
+        double max = Math.max(Math.abs(newWheelSpeeds[0]), Math.abs(newWheelSpeeds[1]));
+        max = Math.max(max, Math.abs(newWheelSpeeds[2]));
+        max = Math.max(max, Math.abs(newWheelSpeeds[3]));
+
+        if (max > 1.0) {
+            newWheelSpeeds[0] /= max;
+            newWheelSpeeds[1] /= max;
+            newWheelSpeeds[2] /= max;
+            newWheelSpeeds[3] /= max;
+        }
+
+        
         frontLeft.setPower(newWheelSpeeds[0]);
         frontRight.setPower(newWheelSpeeds[1]);
         backLeft.setPower(newWheelSpeeds[2]);
@@ -167,10 +193,18 @@ public class State_Machine_Auto extends OpMode{
 
         flywheel = new Flywheel(hardwareMap); //Class object with functions setVelocity(rpm) and setZero()
 
-        frontLeft = hdwr.get(DcMotorEx.class, "frontLeft");
-        backLeft = hdwr.get(DcMotorEx.class, "backLeft");
-        frontRight = hdwr.get(DcMotorEx.class, "frontRight");
-        backRight = hdwr.get(DcMotorEx.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
@@ -187,32 +221,34 @@ public class State_Machine_Auto extends OpMode{
     @Override
     public void loop(){
         //Testing code
-        odo.update()
+        odo.update();
         Pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
         double currentY = pos.getY(DistanceUnit.MM);
-        
 
         
-        if (gamepad1.dpad_left) {
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+        
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
             deltaX -= 200;
         }
-        if (gamepad1.dpad_right) {
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
             deltaX += 200;
         }
         
-        if (gamepad1.dpad_up) {
+        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
             deltaY += 200;
         }
-        if (gamepad1.dpad_down) {
+        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
             deltaY -= 200;
         }
         
-        if (gamepad1.left_bumper) {
+        if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
             deltaHeading -= 10;
         }
-        if (gamepad1.right_bumper) {
+        if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
             deltaHeading += 10;
         }
 
@@ -225,7 +261,7 @@ public class State_Machine_Auto extends OpMode{
         telemetry.addData("Delta Heading:", deltaHeading);
 
         if (gamepad1.a) {
-            telemetry.addData("Target Position Set");
+            telemetry.addLine("Target Position Set");
             targetMoveX = currentX + deltaX;
             targetMoveY = currentY + deltaY;
             targetMoveHeading = currentHeading + deltaHeading;
