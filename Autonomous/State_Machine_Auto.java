@@ -65,7 +65,7 @@ public class State_Machine_Auto extends OpMode{
     private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
     public double[] getRotatePower(double currentHeading, double targetHeading) {
-        double minDegreeDifference = 0.1;
+        double minDegreeDifference = 0.5;
         double errorHeading = targetHeading - currentHeading;
 
         
@@ -88,7 +88,7 @@ public class State_Machine_Auto extends OpMode{
     }
 
     public double[] getForwardPower(double currentY, double targetY) {
-        double minYDifference = 0.5;
+        double minYDifference = 5.0;
         double errorY = targetY - currentY;
 
         double divYDifference = 150.0;
@@ -112,7 +112,7 @@ public class State_Machine_Auto extends OpMode{
 
 
     public double[] getStrafePower(double currentX, double targetX) {
-        double minXDifference = 0.5;
+        double minXDifference = 5.0;
         double errorX = targetX - currentX;
 
         double divXDifference = 150.0;
