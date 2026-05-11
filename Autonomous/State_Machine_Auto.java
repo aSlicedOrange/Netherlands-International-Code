@@ -171,6 +171,14 @@ public class State_Machine_Auto extends OpMode{
         backLeft = hdwr.get(DcMotorEx.class, "backLeft");
         frontRight = hdwr.get(DcMotorEx.class, "frontRight");
         backRight = hdwr.get(DcMotorEx.class, "backRight");
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
