@@ -167,10 +167,10 @@ public class State_Machine_Auto extends OpMode{
 
         flywheel = new Flywheel(hardwareMap); //Class object with functions setVelocity(rpm) and setZero()
 
-        frontLeft = hdwr.get(DcMotorEx.class, "frontLeft");
-        backLeft = hdwr.get(DcMotorEx.class, "backLeft");
-        frontRight = hdwr.get(DcMotorEx.class, "frontRight");
-        backRight = hdwr.get(DcMotorEx.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
