@@ -187,6 +187,7 @@ public class State_Machine_Auto extends OpMode{
     @Override
     public void loop(){
         //Testing code
+        odo.update()
         Pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
