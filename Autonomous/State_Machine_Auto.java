@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -9,10 +12,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import org.firstinspires.ftc.teamcode.classes.Flywheel;
+import org.firstinspires.ftc.teamcode.Classes.Flywheel;
 
 @Autonomous(name = "SM_Auto")
-public class SM_Auto extends OpMode{
+public class State_Machine_Auto extends OpMode{
 
     private DcMotorEx frontRight;
     private DcMotorEx frontLeft;
@@ -49,6 +52,10 @@ public class SM_Auto extends OpMode{
     private testStates currentState = testStates.NONE;
 
 
+    double targetMoveX = 0;
+    double targetMoveY = 0;
+    double targetMoveHeading = 0;
+
     //For Testing
     private double deltaHeading = 0;
     private double deltaX = 0;
@@ -75,7 +82,7 @@ public class SM_Auto extends OpMode{
             rotateMotorPower[3] = -motorPower; //bR
         }
 
-        return (rotateMotorPower)
+        return (rotateMotorPower);
     }
 
     public double[] getForwardPower(double currentY, double targetY) {
@@ -97,7 +104,7 @@ public class SM_Auto extends OpMode{
             forwardMotorPower[3] = motorPower; //bR
         }
 
-        return (forwardMotorPower)
+        return (forwardMotorPower);
 
     }
 
@@ -121,7 +128,7 @@ public class SM_Auto extends OpMode{
             strafeMotorPower[3] = motorPower; //bR
         }
 
-        return (strafeMotorPower)
+        return (strafeMotorPower);
 
     }
     
@@ -158,24 +165,24 @@ public class SM_Auto extends OpMode{
     @Override
     public void init(){
 
-        flywheel = new Flywheel(); //Class object with functions setVelocity(rpm) and setZero()
+        flywheel = new Flywheel(hardwareMap); //Class object with functions setVelocity(rpm) and setZero()
         
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         //Odometry Computer Configuration
-        odo.setOffsets(-7.7008210429995145, 4.118370236374258); //Offsets for where the opometry pods are on the robot
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWING_ARM); //Check if correct, for what hardware ur using
+        odo.setOffsets(-7.7008210429995145, 4.118370236374258, DistanceUnit.MM); //Offsets for where the opometry pods are on the robot
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWING_ARM_POD); //Check if correct, for what hardware ur using
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); //to tell encoder what positive direction is
 
         odo.resetPosAndIMU();
-        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, x, y, AngleUnit.RADIANS, 0)//Set the x and y values for the starting pos (depends on where you start) and heading
-        odo.setPosition(startingPosition)
+        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, 0);//Set the x and y values for the starting pos (depends on where you start) and heading
+        odo.setPosition(startingPosition);
         
     }
     @Override
     public void loop(){
         //Testing code
-        pose2D pos = odo.getPosition();
+        Pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
         double currentX = pos.getX(DistanceUnit.MM);
         double currentY = pos.getY(DistanceUnit.MM);
@@ -213,9 +220,9 @@ public class SM_Auto extends OpMode{
 
         if (gamepad1.a) {
             telemetry.addData("Target Position Set");
-            double targetX = currentX + deltaX;
-            double targetY = currentY + deltaY;
-            double targetHeading = currentHeading + deltaHeading;
+            targetMoveX = currentX + deltaX;
+            targetMoveY = currentY + deltaY;
+            targetMoveHeading = currentHeading + deltaHeading;
             currentState = testStates.MOVE_TO_POS;
         } else if (gamepad1.y) {
             currentState = testStates.NONE;
@@ -227,19 +234,20 @@ public class SM_Auto extends OpMode{
 
         switch (currentState) {
             case (MOVE_TO_POS):
-                if (!(moveTo())) {
-                telemetry.addLine("Moving to Position...");
-                telemetry.addData("Current X:", currentX, "Target X:", targetX);
-                telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
-                telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
+                if (!(moveRobot(targetMoveX, targetMoveY, targetMoveHeading))) {
+                    telemetry.addLine("Moving to Position...");
+                    telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
+                    telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
+                    telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f", currentHeading, targetMoveHeading);
                 } else {
-                    currentState = testStates.NONE
+                    currentState = testStates.NONE;
                 }
         }
-        telemetry.addData("Current X:", currentX, "Target X:", targetX);
-        telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
-        telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
+        telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
+        telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
+        telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f", currentHeading, targetMoveHeading);
 
 
         
     }
+}
