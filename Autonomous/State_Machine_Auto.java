@@ -166,6 +166,11 @@ public class State_Machine_Auto extends OpMode{
     public void init(){
 
         flywheel = new Flywheel(hardwareMap); //Class object with functions setVelocity(rpm) and setZero()
+
+        frontLeft = hdwr.get(DcMotorEx.class, "frontLeft");
+        backLeft = hdwr.get(DcMotorEx.class, "backLeft");
+        frontRight = hdwr.get(DcMotorEx.class, "frontRight");
+        backRight = hdwr.get(DcMotorEx.class, "backRight");
         
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
