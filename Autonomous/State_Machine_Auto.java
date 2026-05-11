@@ -25,11 +25,18 @@ public class SM_Auto extends OpMode{
     GoBildaPinpointDriver odo;
 
 
-    private enum state {
+    private enum movementState {
         MOVE_TO_SHOOT,
         MOVE_TO_GATE,
         MOVE_TO_BALL1,
         MOVE_TO_BALL2
+    }
+
+    private enum miscState {
+        FLYWHEEL_ON,
+        FLYWHEEL_OFF,
+        INTAKE_ON,
+        INTAKE_OFF
     }
 
     //For Testing
@@ -122,16 +129,16 @@ public class SM_Auto extends OpMode{
         double[] newWheelSpeeds = new double[4];
         
         newWheelSpeeds[0] = Forward[0] + Strafe[0] + Rotate[0];
-        newWheelSpeeds[1] = Forward[1] - Strafe[1] - Rotate[1];
-        newWheelSpeeds[2] = Forward[2] - Strafe[2] + Rotate[2];
-        newWheelSpeeds[3] = Forward[3] + Strafe[3] - Rotate[3];
+        newWheelSpeeds[1] = Forward[1] + Strafe[1] + Rotate[1];
+        newWheelSpeeds[2] = Forward[2] + Strafe[2] + Rotate[2];
+        newWheelSpeeds[3] = Forward[3] + Strafe[3] + Rotate[3];
 
         frontLeft.setPower(newWheelSpeeds[0]);
         frontRight.setPower(newWheelSpeeds[1]);
         backLeft.setPower(newWheelSpeeds[2]);
         backRight.setPower(newWheelSpeeds[3]);
 
-        if (newWheelSpeeds[0] = 0 && newWheelSpeeds[1] = 0 && newWheelSpeeds[2] = 0 && newWheelSpeeds[3] = 0) {
+        if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
             return true
         } else {
             return false
@@ -197,11 +204,18 @@ public class SM_Auto extends OpMode{
         if (gamepad1.a) {
             telemetry.addData("Target Position Set");
             double targetX = currentX + deltaX;
-            double targetY = currentY+deltaY;
+            double targetY = currentY + deltaY;
             double targetHeading = currentHeading + deltaHeading;
             
             while (!(moveRobot(targetX, targetY, targetHeading))) {
-                telemetry.addLine("Moving to Position");
+                telemetry.addLine("Moving to Position...");
+                telemetry.addData("Current X:", currentX, "Target X:", targetX);
+                telemetry.addData("Current Y:", currentY, "Target Y:", targetY);
+                telemetry.addData("Current Heading:", currentHeading, "Target Heading:", targetHeading);
+                pose2D pos = odo.getPosition();
+                double currentHeading = pos.getHeading(AngleUnit.DEGREES);
+                double currentX = pos.getX(DistanceUnit.MM);
+                double currentY = pos.getY(DistanceUnit.MM);
                 if (gamepad1.y) {
                     break
                 }
