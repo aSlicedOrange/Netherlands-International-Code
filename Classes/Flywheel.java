@@ -27,6 +27,8 @@ public class Flywheel {
 
       flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
       flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+      flywheelMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
       
       PIDFCoefficients pidfCoefficients = new PIDFCoefficients(flywheelP, 0, 0, flywheelF); 
       flywheelMotorL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
