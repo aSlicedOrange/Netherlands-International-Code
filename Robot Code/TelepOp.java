@@ -198,7 +198,7 @@ public class TelepOp extends OpMode{
             
             int currentPos = turret.getCurrentPosition();
 
-            double power = 0;
+            double power = 0; //Why does it set to 0 at the start
 
             double degree = goalTag.ftcPose.bearing;
 
@@ -209,11 +209,11 @@ public class TelepOp extends OpMode{
 
                 double minPower = 0.05;
                 if (Math.abs(power) < minPower) {
-                    power = Math.signum(power) * minPower;
+                    power = Math.signum(power) * minPower; //Why does it * min power shouldent it set to 0
                 }
 
                 if ((currentPos <= MIN_POS && power < 0) ||
-                    (currentPos >= MAX_POS && power > 0)) {
+                    (currentPos >= MAX_POS && power > 0)) { //Why is it currentPos <= MIN_POS and then a -ve power
 
                     power = 0;
                 
