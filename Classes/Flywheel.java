@@ -11,7 +11,9 @@ public class Flywheel {
     private DcMotorEx flywheelMotorR;
   
     static final double TICKS_PER_REV_FLYWHEEL = 28;
-    static final double GEAR_RATIO_FLYWHEEL = 0.926;
+    static final double GEAR_RATIO_FLYWHEEL = 1;
+
+
 
   public void init() {
       flywheelMotorL = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
@@ -20,7 +22,12 @@ public class Flywheel {
       flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
       flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-      PIDFCoefficients pidfCoefficients = new PIDFCoefficients(0.1, 0, 0, 12.0/6000); 
+      static final double flywheelP = 0.1;
+      static final double flywheelI = 0;
+      static final double flywheelD = 0;
+      static final double flywheelF = 12.0/6000;
+      
+      PIDFCoefficients pidfCoefficients = new PIDFCoefficients(flywheelP, 0, 0, flywheelF); 
       flywheelMotorL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
       flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
   }
@@ -30,4 +37,9 @@ public class Flywheel {
     flywheelMotorL.setVelocity(ticksPerSecond);
     flywheelMotorR.setVelocity(ticksPerSecond);
   }
+
+    public void setZero() {
+        flywheelMotorL.setVelocity(0);
+        flywheelMotorR.setVelocity(0);
+    }
 }
