@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+package org.firstinspires.ftc.teamcode;
 
 @Autonomous(name = "SM_Auto")
 public class SM_Auto extends OpMode{
@@ -139,6 +140,9 @@ public class SM_Auto extends OpMode{
     
     @Override
     public void init(){
+
+        flywheel flywheel = new flywheel() //Class object with functions setVelocity(rpm) and setZero()
+        
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo")
 
         //Odometry Computer Configuration
