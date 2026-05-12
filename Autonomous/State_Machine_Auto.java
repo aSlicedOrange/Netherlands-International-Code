@@ -275,7 +275,7 @@ public class State_Machine_Auto extends OpMode{
         }
 
         switch (currentState) {
-            case (MOVE_TO_POS):
+            case MOVE_TO_POS:
                 if (!(moveRobot(targetMoveX, targetMoveY, targetMoveHeading))) {
                     telemetry.addLine("Moving to Position...");
                     telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
