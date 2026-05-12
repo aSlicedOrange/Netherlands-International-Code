@@ -1,0 +1,2 @@
+The Robot Code file is where you add the up to date exact files from the robot onto the github
+and if you see any other files just upload it onto the robot.
