@@ -25,8 +25,9 @@ public class Simple_Autos extends LinearOpMode{
 
     Flywheel flywheel
 
-
-    private double driveSpeed = 2;
+  
+    private double driveSpeed = 0.6; 
+    private double slowSpeed = 0.3;
 
     
     static final double TICKS_PER_REV = 28;
@@ -34,14 +35,63 @@ public class Simple_Autos extends LinearOpMode{
     static final double GEAR_RATIO = 20;
 
     public void Simple_Auto(String colour) {
-      double colourM
+      int colourM;
       if (colour == "Blue") {
           colourM = 1;
       } else {
           colourM = -1;
       }
+      //Simple_Auto Routine
+      encoderDrive(driveSpeed, 1200);
+            
+      flywheel.setRPM(2000); 
+
+      sleep(3500);
+      intakeMotor.setPower(-1);
+      sleep(200);
+      intakeMotor.setPower(1);
+            
+      sleep(2500);
+          
+      flywheel.setZero();
+      intakeMotor.setPower(0);
+            
+      sleep(500);
+            
+      strafe(driveSpeed, 500*colourM);
+          
+      frontLeft.setPower(0);
+      frontRight.setPower(0);
+      backLeft.setPower(0);
+      backRight.setPower(0);
     }
-  
+    public void Strafe_Auto(String colour) {
+      int colourM;
+      if (colour == "Blue") {
+          colourM = 1;
+      } else {
+          colourM = -1;
+      }
+      //Strafe_Auto Routine
+      strafe(driveSpeed, -609.5*colourM);
+            
+        
+      frontLeft.setPower(0);
+      frontRight.setPower(0);
+      backLeft.setPower(0);
+      backRight.setPower(0);
+    }
+    public void Forward_Auto() {
+
+      //Forward_Auto Routine
+      encoderDrive(driveSpeed, 609.5);
+            
+        
+      frontLeft.setPower(0);
+      frontRight.setPower(0);
+      backLeft.setPower(0);
+      backRight.setPower(0);
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,15 +99,53 @@ public class Simple_Autos extends LinearOpMode{
 
         hardwareInit(hardwareMap);
 
-        double driveSpeed = 0.6; 
-        double slowSpeed = 0.3;
+        String selectedTeam = "";
+        String selectedFile = "";
 
-        String teamB = "<-";
-        String teamR = "";
-        
-        while (!(gamepad1.a)) {
-            telemetry.addData
+        private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+        private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
+        boolean selected = false;
+        while (!(gamepad1.a) && selected) {
+            previousGamepad1.copy(currentGamepad1);
+            currentGamepad1.copy(gamepad1);
+            if (currentGamepad1.b && !previousGamepad1.b) {
+                if (!(selectedFile == "")) {
+                  selectedFile = "";
+                } else {
+                  selectedTeam = "";
+                }
+            }
+            boolean selected = false;
+          
+            telemetry.addData("Selected Team: ", selectedTeam);
+            telemetry.addData("Selected File: ", selectedFile);
+          
+            if (selectedTeam == "") {
+                telemetry.addLine("DPAD UP FOR RED");
+                telemetry.addLine("DPAD DOWN FOR BLUE");
+                if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+                    selectedTeam = "Red";
+                } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+                    selectedTeam = "Blue";
+                }
+            } else if (selectedFile == "") {
+                telemetry.addLine("DPAD UP FOR FORWARD_AUTO");
+                telemetry.addLine("DPAD RIGHT FOR SIMPLE_AUTO");
+                telemetry.addLine("DPAD DOWN FOR STRAFE_AUTO");
+                if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+                    selectedTeam = "Forward_Auto";
+                } else if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
+                    selectedTeam = "Simple_Auto";
+                } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+                    selectedTeam = "Strafe_Auto";
+                }
+            } else () {
+                telemetry.addLine("Are you sure with your choices?");
+                telemetry.addLine("Press A to Lock In your choices.");
+                telemetry.addLine("Press B to go back.")
+                boolean selected = true;
+            }
 
           
         }
@@ -66,33 +154,19 @@ public class Simple_Autos extends LinearOpMode{
         waitForStart();
 
         if(opModeIsActive()) {
-            encoderDrive(driveSpeed, 1200);
-            
-            setFlywheelRPM(2000); 
 
-            sleep(3500);
-            intakeMotor.setPower(-1);
-            sleep(200);
-            intakeMotor.setPower(1);
-            
-            sleep(1500);
-            
-            intakeMotor.setPower(-1);
-            sleep(400);
-            intakeMotor.setPower(1);
-            sleep(3000);
+            switch(selectedFile) {
+                case "Forward_Auto":
+                  Forward_Auto();
+
+                case "Strafe_Auto":
+                  Strafe_Auto(selectedTeam);
+
+                case "Simple_Auto":
+                  Simple_Auto(selectedTeam);
+            }
           
-            setFlywheelRPM(0);
-            intakeMotor.setPower(0);
-            
-            sleep(3000);
-            
-            strafe(driveSpeed, 500);
-          
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
+
             
         }
     }
@@ -105,7 +179,7 @@ public class Simple_Autos extends LinearOpMode{
         frontRight = hdwr.get(DcMotorEx.class, "frontRight");
         backRight = hdwr.get(DcMotorEx.class, "backRight");
 
-        intakeMotor   = hdwr.get(DcMotorEx.class, "intakeMotor");
+        intakeMotor = hdwr.get(DcMotorEx.class, "intakeMotor");
         
         intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
