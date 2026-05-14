@@ -1,0 +1,253 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import java.util.ArrayList;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+
+@Autonomous(name = "Simple Auto Files")
+public class Simple_Autos extends LinearOpMode{
+  
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+
+    private DcMotorEx intakeMotor;
+
+    Flywheel flywheel
+
+
+    private double driveSpeed = 2;
+
+    
+    static final double TICKS_PER_REV = 28;
+    static final double WHEEL_DIAMETER = 104; //Millimeters
+    static final double GEAR_RATIO = 20;
+
+    public void Simple_Auto(String colour) {
+      double colourM
+      if (colour == "Blue") {
+          colourM = 1;
+      } else {
+          colourM = -1;
+      }
+    }
+  
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+
+        hardwareInit(hardwareMap);
+
+        double driveSpeed = 0.6; 
+        double slowSpeed = 0.3;
+
+        String teamB = "<-";
+        String teamR = "";
+        
+        while (!(gamepad1.a)) {
+            telemetry.addData
+
+
+          
+        }
+      
+      
+        waitForStart();
+
+        if(opModeIsActive()) {
+            encoderDrive(driveSpeed, 1200);
+            
+            setFlywheelRPM(2000); 
+
+            sleep(3500);
+            intakeMotor.setPower(-1);
+            sleep(200);
+            intakeMotor.setPower(1);
+            
+            sleep(1500);
+            
+            intakeMotor.setPower(-1);
+            sleep(400);
+            intakeMotor.setPower(1);
+            sleep(3000);
+          
+            setFlywheelRPM(0);
+            intakeMotor.setPower(0);
+            
+            sleep(3000);
+            
+            strafe(driveSpeed, 500);
+          
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            
+        }
+    }
+
+    public void hardwareInit(HardwareMap hdwr){
+        flywheel = new Flywheel(hdwr);
+        
+        frontLeft = hdwr.get(DcMotorEx.class, "frontLeft");
+        backLeft = hdwr.get(DcMotorEx.class, "backLeft");
+        frontRight = hdwr.get(DcMotorEx.class, "frontRight");
+        backRight = hdwr.get(DcMotorEx.class, "backRight");
+
+        intakeMotor   = hdwr.get(DcMotorEx.class, "intakeMotor");
+        
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+      public void encoderDrive(double speed, double distanceMM) {
+
+        int ticks = (int) (
+                (distanceMM / (Math.PI * WHEEL_DIAMETER))
+                * TICKS_PER_REV
+                * GEAR_RATIO
+        );
+
+        int frontLeftTarget = frontLeft.getCurrentPosition() + ticks;
+        int frontRightTarget = frontRight.getCurrentPosition() + ticks;
+        int backLeftTarget = backLeft.getCurrentPosition() + ticks;
+        int backRightTarget = backRight.getCurrentPosition() + ticks;
+
+        frontLeft.setTargetPosition(frontLeftTarget);
+        frontRight.setTargetPosition(frontRightTarget);
+        backLeft.setTargetPosition(backLeftTarget);
+        backRight.setTargetPosition(backRightTarget);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        frontLeft.setPower(speed);
+        frontRight.setPower(speed);
+        backLeft.setPower(speed);
+        backRight.setPower(speed);
+
+        while (opModeIsActive() &&
+            (frontLeft.isBusy() || frontRight.isBusy() ||
+            backLeft.isBusy() || backRight.isBusy())) {
+
+            telemetry.addData("FL", frontLeft.getCurrentPosition());
+            telemetry.addData("FR", frontRight.getCurrentPosition());
+            telemetry.update();
+        }
+
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+}
+
+    public void strafe(double speed, double distanceMM) {
+
+    int ticks = (int) ((distanceMM / (Math.PI * WHEEL_DIAMETER)) * TICKS_PER_REV * GEAR_RATIO);
+
+    frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + ticks);
+    frontRight.setTargetPosition(frontRight.getCurrentPosition() - ticks);
+    backLeft.setTargetPosition(backLeft.getCurrentPosition() - ticks);
+    backRight.setTargetPosition(backRight.getCurrentPosition() + ticks);
+
+    frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+    frontLeft.setPower(Math.abs(speed));
+    frontRight.setPower(Math.abs(speed));
+    backLeft.setPower(Math.abs(speed));
+    backRight.setPower(Math.abs(speed));
+
+
+    while (opModeIsActive() &&
+        (frontLeft.isBusy() || frontRight.isBusy() ||
+        backLeft.isBusy() || backRight.isBusy())) {
+
+        telemetry.addData("FL", frontLeft.getCurrentPosition());
+        telemetry.addData("FR", frontRight.getCurrentPosition());
+        telemetry.update();
+    }
+
+    frontLeft.setPower(0);
+    frontRight.setPower(0);
+    backLeft.setPower(0);
+    backRight.setPower(0);
+
+    frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+}
+
+    public void rotate(double speed, double angleDegrees) {
+
+    double robotWidth = 435;
+    double wheelDistance = (robotWidth * Math.PI) * (angleDegrees / 360.0);
+
+    int ticks = (int)((wheelDistance / (Math.PI * WHEEL_DIAMETER)) * TICKS_PER_REV * GEAR_RATIO);
+
+    frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + ticks);
+    frontRight.setTargetPosition(frontRight.getCurrentPosition() - ticks);
+    backLeft.setTargetPosition(backLeft.getCurrentPosition() + ticks);
+    backRight.setTargetPosition(backRight.getCurrentPosition() - ticks);
+
+    frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+    frontLeft.setPower(Math.abs(speed));
+    frontRight.setPower(Math.abs(speed));
+    backLeft.setPower(Math.abs(speed));
+    backRight.setPower(Math.abs(speed));
+
+    while (opModeIsActive() &&
+        (frontLeft.isBusy() || frontRight.isBusy() ||
+        backLeft.isBusy() || backRight.isBusy())) {
+
+        telemetry.addData("FL", frontLeft.getCurrentPosition());
+        telemetry.addData("FR", frontRight.getCurrentPosition());
+        telemetry.update();
+    }
+
+    frontLeft.setPower(0);
+    frontRight.setPower(0);
+    backLeft.setPower(0);
+    backRight.setPower(0);
+
+    frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+}
+    }
+}
