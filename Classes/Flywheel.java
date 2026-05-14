@@ -48,6 +48,8 @@ public class Flywheel {
         double[] velocity = new double[2];
         velocity[0] = flywheelMotorL.getVelocity();
         velocity[1] = flywheelMotorR.getVelocity();
+
+        return (velocity);
     }
 
     public void setZero() {
