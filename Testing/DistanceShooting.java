@@ -20,15 +20,16 @@ public class MotorTester extends OpMode{
     private double goalHeight = 1.15;
     private double gravity = 9.816;
     private double Uy = (2*gravity*goalHeight)**0.5;
-    private double Ux;
     private double backplateAngle;
-    private double flywheelToBallDiv = 1;
+    private double flywheelToBallDiff = 100;
   
     public double distance(double distance) {
-        Ux = (distance*gravity**0.5) / (2*goalHeight)**0.5;
-        backplateAngle = Math.atan(Uy / Ux);
+        double Ux = (distance*gravity**0.5) / (2*goalHeight)**0.5;
+        backplateAngle = Math.atan(Uy / Ux) * (180 / Math.pi);
+        double U = (Ux**2 + Uy**2)**0.5;
+        double flywheelVel = U * flywheelToBallDiff;
 
-        
+        return(flywheelVel);
     }
   
     @Override
