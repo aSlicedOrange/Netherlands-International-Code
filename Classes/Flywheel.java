@@ -44,6 +44,12 @@ public class Flywheel {
     flywheelMotorR.setVelocity(ticksPerSecond);
   }
 
+    public double[] getVelocity() {
+        double[] velocity = new double[2];
+        velocity[0] = flywheelMotorL.getVelocity();
+        velocity[1] = flywheelMotorR.getVelocity();
+    }
+
     public void setZero() {
         flywheelMotorL.setVelocity(0);
         flywheelMotorR.setVelocity(0);
