@@ -288,7 +288,8 @@ public class State_Machine_Auto extends OpMode{
         telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
         telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
         telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f", currentHeading, targetMoveHeading);
-
+        
+        telemetry.update();
 
         
     }
