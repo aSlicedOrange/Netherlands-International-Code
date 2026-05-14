@@ -260,7 +260,7 @@ public class State_Machine_Auto extends OpMode{
         telemetry.addData("Delta Y:", deltaY);
         telemetry.addData("Delta Heading:", deltaHeading);
 
-        if (gamepad1.a) {
+        if (currentGamepad1.a && !previousGamepad1.a) {
             telemetry.addLine("Target Position Set");
             targetMoveX = currentX + deltaX;
             targetMoveY = currentY + deltaY;
