@@ -16,7 +16,7 @@ public class MotorTester extends OpMode{
     Flywheel flywheel;
     
     private double goalHeight = 1.15;
-    private double gravity = 9.816;
+    private double gravity = 9.812;
     private double Uy = (2*gravity*goalHeight)**0.5;
     private double backplateAngle;
     private double flywheelToBallDiff = 500;
