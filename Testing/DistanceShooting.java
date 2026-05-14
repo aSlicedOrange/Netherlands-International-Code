@@ -11,9 +11,7 @@ import org.firstinspires.ftc.teamcode.Classes.Flywheel;
 @TeleOp(name = "Motor Tester")
 public class MotorTester extends OpMode{
 
-
-    private DcMotor motor1;
-    private DcMotor motor2;
+    private DcMotor intake;
 
     Flywheel flywheel;
     
@@ -36,31 +34,27 @@ public class MotorTester extends OpMode{
     public void init(){
         flywheel = new Flywheel(hardwareMap);
       
-        motor1 = hardwareMap.get(DcMotorEx.class, "Motor1");
-        motor2 = hardwareMap.get(DcMotor.class, "Motor2");
+        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
       
-        motor1.setZeroPowerBehavior(DcMotorEX.ZeroPowerBehavior.FLOAT);
-        motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        
-        motor1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     @Override
     public void loop(){
     
     if (gamepad1.right_trigger > 0.1) {
-        motor1.setVelocity(distance(2));
+        flywheel.setRPM(distance(2));
     } else {
-        motor1.setPower(0);
+        flywheel.setZero();
     }
     if (gamepad1.left_trigger > 0.1) {
-        motor2.setPower(gamepad1.left_trigger);
+        intake.setPower(gamepad1.left_trigger);
     } else {
-        motor2.setPower(0);
+        intake.setPower(0);
     }
     
-    
+    telemetry.addData("Flywheel Velocity", "%.2f", flywheelVel);
     
     }
 }
