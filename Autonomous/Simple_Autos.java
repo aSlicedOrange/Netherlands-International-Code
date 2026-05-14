@@ -23,7 +23,7 @@ public class Simple_Autos extends LinearOpMode{
 
     private DcMotorEx intakeMotor;
 
-    Flywheel flywheel
+    Flywheel flywheel = new Flywheel(hardwareMap);
 
   
     private double driveSpeed = 0.6; 
@@ -36,7 +36,7 @@ public class Simple_Autos extends LinearOpMode{
 
     public void Simple_Auto(String colour) {
       int colourM;
-      if (colour == "Blue") {
+      if (colour.equals("Blue")) {
           colourM = 1;
       } else {
           colourM = -1;
@@ -96,32 +96,32 @@ public class Simple_Autos extends LinearOpMode{
     @Override
     public void runOpMode() throws InterruptedException {
 
-
         hardwareInit(hardwareMap);
 
         String selectedTeam = "";
         String selectedFile = "";
 
-        private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
-        private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+        com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+        com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
         boolean selected = false;
-        while (!(gamepad1.a) && selected) {
+        while (!(gamepad1.a) && !(selected)) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
             if (currentGamepad1.b && !previousGamepad1.b) {
-                if (!(selectedFile == "")) {
+                if (!(selectedFile.isEmpty())) {
                   selectedFile = "";
                 } else {
                   selectedTeam = "";
                 }
             }
+
             boolean selected = false;
           
             telemetry.addData("Selected Team: ", selectedTeam);
             telemetry.addData("Selected File: ", selectedFile);
           
-            if (selectedTeam == "") {
+            if (selectedTeam.isEmpty()) {
                 telemetry.addLine("DPAD UP FOR RED");
                 telemetry.addLine("DPAD DOWN FOR BLUE");
                 if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
@@ -129,24 +129,25 @@ public class Simple_Autos extends LinearOpMode{
                 } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
                     selectedTeam = "Blue";
                 }
-            } else if (selectedFile == "") {
+            } else if (selectedFile.isEmpty()) {
                 telemetry.addLine("DPAD UP FOR FORWARD_AUTO");
                 telemetry.addLine("DPAD RIGHT FOR SIMPLE_AUTO");
                 telemetry.addLine("DPAD DOWN FOR STRAFE_AUTO");
                 if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                    selectedTeam = "Forward_Auto";
+                    selectedFile = "Forward_Auto";
                 } else if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
-                    selectedTeam = "Simple_Auto";
+                    selectedFile = "Simple_Auto";
                 } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-                    selectedTeam = "Strafe_Auto";
+                    selectedFile = "Strafe_Auto";
                 }
-            } else () {
+                
+            } else {
                 telemetry.addLine("Are you sure with your choices?");
                 telemetry.addLine("Press A to Lock In your choices.");
-                telemetry.addLine("Press B to go back.")
+                telemetry.addLine("Press B to go back.");
                 boolean selected = true;
             }
-
+            telemetry.update();
           
         }
       
@@ -158,12 +159,15 @@ public class Simple_Autos extends LinearOpMode{
             switch(selectedFile) {
                 case "Forward_Auto":
                   Forward_Auto();
+                  break;
 
                 case "Strafe_Auto":
                   Strafe_Auto(selectedTeam);
+                  break;
 
                 case "Simple_Auto":
                   Simple_Auto(selectedTeam);
+                  break;
             }
           
 
@@ -172,8 +176,6 @@ public class Simple_Autos extends LinearOpMode{
     }
 
     public void hardwareInit(HardwareMap hdwr){
-        flywheel = new Flywheel(hdwr);
-        
         frontLeft = hdwr.get(DcMotorEx.class, "frontLeft");
         backLeft = hdwr.get(DcMotorEx.class, "backLeft");
         frontRight = hdwr.get(DcMotorEx.class, "frontRight");
