@@ -323,5 +323,5 @@ public class Simple_Autos extends LinearOpMode{
     backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 }
-    }
+
 }
