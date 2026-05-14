@@ -38,7 +38,7 @@ public class Flywheel {
       flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
   }
 
-  public void setFlywheelRPM(double rpm) {
+  public void setRPM(double rpm) {
     double ticksPerSecond = (rpm*GEAR_RATIO_FLYWHEEL / 60.0) * TICKS_PER_REV_FLYWHEEL;
     flywheelMotorL.setVelocity(ticksPerSecond);
     flywheelMotorR.setVelocity(ticksPerSecond);
