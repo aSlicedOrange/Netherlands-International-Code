@@ -53,8 +53,10 @@ public class MotorTester extends OpMode{
     } else {
         intake.setPower(0);
     }
-    
+
+    double curVel = flywheel.getVelocity();
     telemetry.addData("Flywheel Velocity", "%.2f", flywheelVel);
+    telemetry.addData("Current Velocity", "%.2f", curVel);
     
     }
 }
