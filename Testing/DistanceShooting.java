@@ -20,7 +20,9 @@ public class MotorTester extends OpMode{
     private double Uy = (2*gravity*goalHeight)**0.5;
     private double backplateAngle;
     private double flywheelToBallDiff = 500;
-  
+
+    double DIST = 2;
+    
     public double distance(double distance) {
         double Ux = (distance*gravity**0.5) / (2*goalHeight)**0.5;
         backplateAngle = Math.atan(Uy / Ux) * (180 / Math.pi);
@@ -44,7 +46,7 @@ public class MotorTester extends OpMode{
     public void loop(){
     
     if (gamepad1.right_trigger > 0.1) {
-        flywheel.setRPM(distance(2));
+        flywheel.setRPM(distance(DIST));
     } else {
         flywheel.setZero();
     }
@@ -53,10 +55,19 @@ public class MotorTester extends OpMode{
     } else {
         intake.setPower(0);
     }
+  
+    if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+            DIST += 0.5;
+    }
+    if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+            DIST -= 0.5;
+    }
 
+        
     double curVel = flywheel.getVelocity();
-    telemetry.addData("Flywheel Velocity", "%.2f", flywheelVel);
-    telemetry.addData("Current Velocity", "%.2f", curVel);
+    telemetry.addData("Flywheel Velocity: ", "%.2f", flywheelVel);
+    telemetry.addData("Current Velocity: ", "%.2f", curVel);
+    telemetry.addData("Current Distance: ", DIST);
     
     }
 }
