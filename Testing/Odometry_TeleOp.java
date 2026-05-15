@@ -54,12 +54,12 @@ public class Odometry_TeleOp extends OpMode {
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Odometry Computer Configuration
-        odo.setOffsets( , ); //Offsets for where the opometry pods are on the robot
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWING_ARM); //Check if correct, for what hardware ur using
+        odo.setOffsets(-7.7008210429995145, 4.118370236374258, DistanceUnit.INCH); //Offsets for where the opometry pods are on the robot
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD); //Check if correct, for what hardware ur using
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); //to tell encoder what positive direction is
 
         odo.resetPosAndIMU();
-        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, x, y, AngleUnit.RADIANS, 0)//Set the x and y values for the starting pos (depends on where you start) and heading
+        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.RADIANS, 0)//Set the x and y values for the starting pos (depends on where you start) and heading
         odo.setPosition(startingPosition)
     }
 
