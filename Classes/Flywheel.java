@@ -16,7 +16,7 @@ public class Flywheel {
     static final double flywheelP = 0.1;
     static final double flywheelI = 0;
     static final double flywheelD = 0;
-    static final double flywheelF = 12.0/6000;
+    static final double flywheelF = 32767/2800;
 
   public Flywheel(HardwareMap hardwareMap) {
       init(hardwareMap);
@@ -28,7 +28,7 @@ public class Flywheel {
       flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
       flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-      flywheelMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
+      flywheelMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
 
       flywheelMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
       flywheelMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -38,11 +38,16 @@ public class Flywheel {
       flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
   }
 
-  public void setRPM(double rpm) {
-    double ticksPerSecond = (rpm*GEAR_RATIO_FLYWHEEL / 60.0) * TICKS_PER_REV_FLYWHEEL;
-    flywheelMotorL.setVelocity(ticksPerSecond);
-    flywheelMotorR.setVelocity(ticksPerSecond);
-  }
+    public void setRPM(double rpm) {
+        double ticksPerSecond = (rpm*GEAR_RATIO_FLYWHEEL / 60.0) * TICKS_PER_REV_FLYWHEEL;
+        flywheelMotorL.setVelocity(ticksPerSecond);
+        flywheelMotorR.setVelocity(ticksPerSecond);
+    }
+    
+    public void setPower(double power) {
+        flywheelMotorL.setPower(power);
+        flywheelMotorR.setPower(power);
+    }
 
     public double[] getVelocity() {
         double[] velocity = new double[2];
