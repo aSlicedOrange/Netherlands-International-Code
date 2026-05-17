@@ -6,11 +6,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-public class Flywheel {
+public class Odometry {
     private GoBildaPinpointDriver odo; 
     private Pose2D pos;
 
-  public Flywheel(HardwareMap hardwareMap) {
+  public Odometry(HardwareMap hardwareMap) {
       init(hardwareMap);
   }
   public void init(HardwareMap hardwareMap) {
