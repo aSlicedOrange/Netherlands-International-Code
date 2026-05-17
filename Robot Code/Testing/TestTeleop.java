@@ -1,101 +1,64 @@
-package org.firstinspires.ftc.teamcode.Testing;
+package org.firstinspires.ftc.teamcode.Classes;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-@TeleOp(name = "Test TeleOp Fixed")
-public class TestTeleop extends OpMode {
+public class Flywheel {
+    private DcMotorEx flywheelMotorL;
+    private DcMotorEx flywheelMotorR;
+  
+    static final double TICKS_PER_REV_FLYWHEEL = 28;
+    static final double GEAR_RATIO_FLYWHEEL = 1;
+  
+    static final double flywheelP = 0.1;
+    static final double flywheelI = 0;
+    static final double flywheelD = 0;
+    static final double flywheelF = 32767/2800;
 
-    private DcMotor lf;
-    private DcMotor lb;
-    private DcMotor rf;
-    private DcMotor rb;
+  public Flywheel(HardwareMap hardwareMap) {
+      init(hardwareMap);
+  }
+  public void init(HardwareMap hardwareMap) {
+      flywheelMotorL = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
+      flywheelMotorR = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
+
+      flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+      flywheelMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
+
+      flywheelMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+      flywheelMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+      
+      PIDFCoefficients pidfCoefficients = new PIDFCoefficients(flywheelP, 0, 0, flywheelF); 
+      flywheelMotorL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+      flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+  }
+
+    public void setRPM(double rpm) {
+        double ticksPerSecond = (rpm*GEAR_RATIO_FLYWHEEL / 60.0) * TICKS_PER_REV_FLYWHEEL;
+        flywheelMotorL.setVelocity(ticksPerSecond);
+        flywheelMotorR.setVelocity(ticksPerSecond);
+    }
     
-    private DcMotor flywheel;
-    private DcMotor intake;
-
-    @Override
-    public void init() {
-        // Hardware Mapping
-        lf = hardwareMap.get(DcMotor.class, "lf");
-        lb = hardwareMap.get(DcMotor.class, "lb");
-        rf = hardwareMap.get(DcMotor.class, "rf");
-        rb = hardwareMap.get(DcMotor.class, "rb");
-
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        flywheel = hardwareMap.get(DcMotor.class, "flywheel");
-        
-        // Zero Power Behaviors
-        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        
-        flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        
-        // Correct Mecanum Direction (Reverse the entire left side)
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lb.setDirection(DcMotorSimple.Direction.REVERSE);
-        rf.setDirection(DcMotorSimple.Direction.FORWARD);
-        rb.setDirection(DcMotorSimple.Direction.FORWARD);
-        
-        // Mechanisms Direction
-        flywheel.setDirection(DcMotorSimple.Direction.REVERSE); 
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+    public void setPower(double power) {
+        flywheelMotorL.setPower(power);
+        flywheelMotorR.setPower(power);
     }
 
-    @Override
-    public void loop() {
-        double y = -gamepad1.left_stick_y; 
-        double x = gamepad1.left_stick_x;
-        double z = gamepad1.right_stick_x;
+    public double[] getVelocity() {
+        double[] velocity = new double[2];
+        velocity[0] = flywheelMotorL.getVelocity();
+        velocity[1] = flywheelMotorR.getVelocity();
 
-        // 2. Apply proper mathematical Deadzone using Math.abs()
-        if (Math.abs(y) < 0.1) y = 0;
-        if (Math.abs(x) < 0.1) x = 0;
-        if (Math.abs(z) < 0.1) z = 0;
-        
-        // 3. Standard Mecanum Kinematics Formulas
-        double lfa = y + x + z;
-        double lba = y - x + z;
-        double rfa = y - x - z;
-        double rba = y + x - z;
+        return (velocity);
+    }
 
-        // 4. Clip/Normalize Powers to stay within the [-1.0, 1.0] safe limit
-        double max = Math.max(Math.max(Math.abs(lfa), Math.abs(lba)), 
-                               Math.max(Math.abs(rfa), Math.abs(rba)));
-        if (max > 1.0) {
-            lfa /= max;
-            lba /= max;
-            rfa /= max;
-            rba /= max;
-        }
-
-        // Send powers to drivetrain
-        lf.setPower(lfa);
-        lb.setPower(lba);
-        rf.setPower(rfa);
-        rb.setPower(rba);
-        
-        // 5. Flywheel Control (Right Trigger)
-        if (gamepad1.right_trigger > 0.1) {
-            flywheel.setPower(gamepad1.right_trigger);
-        } else {
-            flywheel.setPower(0);
-        }
-        
-        // 6. Intake Control (Left Trigger toggles Outtake with X button)
-        if (gamepad1.left_trigger > 0.1) {
-            if (gamepad1.x) {
-                intake.setPower(-gamepad1.left_trigger); // Reverse power for outtake
-            } else {
-                intake.setPower(gamepad1.left_trigger);  // Normal intake
-            }
-        } else {
-            intake.setPower(0);
-        }
+    public void setZero() {
+        flywheelMotorL.setVelocity(0);
+        flywheelMotorR.setVelocity(0);
     }
 }
