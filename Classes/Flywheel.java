@@ -33,7 +33,7 @@ public class Flywheel {
     static final double flywheelP = 0.1;
     static final double flywheelI = 0;
     static final double flywheelD = 0;
-    static final double flywheelF = 32767/2800;
+    static final double flywheelF = 32767.0/2800.0;
 
   public Flywheel(HardwareMap hardwareMap) {
       init(hardwareMap);
