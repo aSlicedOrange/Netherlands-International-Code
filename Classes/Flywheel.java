@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Classes;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,6 +22,7 @@ public void setRPM(double rpm)
 public void setPower(double power)
 public double[] getVelocity()
 public void setZero()
+public void updatePIDF()
 */
 
 public class Flywheel {
@@ -30,29 +32,27 @@ public class Flywheel {
     static final double TICKS_PER_REV_FLYWHEEL = 28;
     static final double GEAR_RATIO_FLYWHEEL = 1;
   
-    static final double flywheelP = 0.1;
-    static final double flywheelI = 0;
-    static final double flywheelD = 0;
-    static final double flywheelF = 32767.0/2800.0;
+    public static final double flywheelP = 0.1;
+    public static final double flywheelI = 0;
+    public static final double flywheelD = 0;
+    public static final double flywheelF = 32767.0/2800.0;
 
   public Flywheel(HardwareMap hardwareMap) {
       init(hardwareMap);
   }
   public void init(HardwareMap hardwareMap) {
-      flywheelMotorL = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
-      flywheelMotorR = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
+        flywheelMotorL = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
+        flywheelMotorR = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
 
-      flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-      flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheelMotorL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheelMotorR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-      flywheelMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
 
-      flywheelMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-      flywheelMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
       
-      PIDFCoefficients pidfCoefficients = new PIDFCoefficients(flywheelP, 0, 0, flywheelF); 
-      flywheelMotorL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-      flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        updatePIDF();
   }
 
     public void setRPM(double rpm) {
@@ -66,6 +66,12 @@ public class Flywheel {
         flywheelMotorR.setPower(power);
     }
 
+    public void updatePIDF() {
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(flywheelP, flywheelI, flywheelD, flywheelF); 
+        flywheelMotorL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        flywheelMotorR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+    }
+    
     public double[] getVelocity() {
         double[] velocity = new double[2];
         velocity[0] = flywheelMotorL.getVelocity();
