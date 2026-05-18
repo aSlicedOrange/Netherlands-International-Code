@@ -6,6 +6,23 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+/*
+Utility Class for Flywheel functionality
+
+To use make an object of the class and pass in hardwareMap, then use the methods below
+
+Example:
+private Flywheel flywheel; (Class attribute)
+
+flywheel = new Flywheel(hardwareMap); (Inside Init)
+
+Methods:
+public void setRPM(double rpm)
+public void setPower(double power)
+public double[] getVelocity()
+public void setZero()
+*/
+
 public class Flywheel {
     private DcMotorEx flywheelMotorL;
     private DcMotorEx flywheelMotorR;
