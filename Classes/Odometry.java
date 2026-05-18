@@ -6,6 +6,24 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+/*
+Utility Class for Odometry functionality
+
+To use make an object of the class and pass in hardwareMap, then use the methods below
+
+Example:
+private Odometry odo; (Class attribute)
+
+odo = new Odometry(hardwareMap, InitialX, InitialY, initialHeading); (Inside Init)
+
+Methods:
+public void update()
+public Pose2D getPosition()
+public double getX()
+public double getHeadingRadians()
+public double getHeadingDegrees()
+*/
+
 public class Odometry {
     private GoBildaPinpointDriver odo; 
     private Pose2D pos;
@@ -23,6 +41,8 @@ public class Odometry {
         odo.resetPosAndIMU();
         Pose2D startingPosition = new Pose2D(DistanceUnit.MM, initialX, initialY, AngleUnit.RADIANS, initialHeading);
         odo.setPosition(startingPosition);
+        
+        pos = startingPosition;
     }
 
     public void update() {
@@ -44,5 +64,9 @@ public class Odometry {
 
     public double getHeadingRadians() {
         return pos.getHeading(AngleUnit.RADIANS);
+    }
+    
+    public double getHeadingDegrees() {
+        return pos.getHeading(AngleUnit.DEGREES);
     }
 }
