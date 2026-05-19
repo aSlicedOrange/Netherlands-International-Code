@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.Classes.Flywheel;
+import org.firstinspires.ftc.teamcode.Classes.Odometry;
 
 @Autonomous(name = "SM_Auto")
 public class State_Machine_Auto extends OpMode{
@@ -22,12 +23,10 @@ public class State_Machine_Auto extends OpMode{
     private DcMotorEx backRight;
     private DcMotorEx backLeft;
 
-    private DcMotorEx flywheelMotorL;
-    private DcMotorEx flywheelMotorR;
 
     Flywheel flywheel;
     
-    GoBildaPinpointDriver odo;
+    Odometry odo;
 
 
     private enum movementState {
@@ -190,8 +189,10 @@ public class State_Machine_Auto extends OpMode{
     @Override
     public void init(){
 
-        flywheel = new Flywheel(hardwareMap); //Class object with functions setVelocity(rpm) and setZero()
+        flywheel = new Flywheel(hardwareMap);
 
+        odo = new Odometry(hardwareMap, 0, 0, 0);
+        
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
@@ -204,17 +205,6 @@ public class State_Machine_Auto extends OpMode{
         
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        
-        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-
-        //Odometry Computer Configuration
-        odo.setOffsets(-7.7008210429995145, 4.118370236374258, DistanceUnit.INCH); //Offsets for where the opometry pods are on the robot
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD); //Check if correct, for what hardware ur using
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); //to tell encoder what positive direction is
-
-        odo.resetPosAndIMU();
-        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, 0);//Set the x and y values for the starting pos (depends on where you start) and heading
-        odo.setPosition(startingPosition);
         
     }
     @Override
