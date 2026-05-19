@@ -87,9 +87,8 @@ public class State_Machine_Auto extends OpMode{
         return (rotateMotorPower);
     }
 
-    public double[] getForwardPower(double currentY, double targetY) {
+    public double[] getForwardPower(double errorY) {
         double minYDifference = 5.0;
-        double errorY = targetY - currentY;
 
         double divYDifference = 150.0;
         double divRatio = errorY / divYDifference;
@@ -99,7 +98,7 @@ public class State_Machine_Auto extends OpMode{
 
         
         double[] forwardMotorPower = {0.0, 0.0, 0.0, 0.0};
-        if (!(Math.abs(errorY) < minYDifference)) {
+        if (Math.abs(errorY) > minYDifference) {
             forwardMotorPower[0] = motorPower; //fL
             forwardMotorPower[1] = motorPower; //fR
             forwardMotorPower[2] = motorPower; //bL
@@ -136,9 +135,9 @@ public class State_Machine_Auto extends OpMode{
     
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
         Pose2D pos = odo.getPosition();
-        double currentHeading = pos.getHeading(AngleUnit.DEGREES);
-        double currentX = pos.getX(DistanceUnit.MM);
-        double currentY = pos.getY(DistanceUnit.MM);
+        double currentHeading = -pos.getHeading(AngleUnit.DEGREES);
+        double currentX = -pos.getY(DistanceUnit.MM);
+        double currentY = pos.getX(DistanceUnit.MM);
 
         double fieldErrorX = targetX - currentX;
         double fieldErrorY = targetY - currentY;
@@ -148,7 +147,7 @@ public class State_Machine_Auto extends OpMode{
         double robotErrorX = fieldErrorX * Math.cos(headingRad) + fieldErrorY * Math.sin(headingRad);
         double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
     
-        double[] Forward = getForwardPower(0, robotErrorY);
+        double[] Forward = getForwardPower(robotErrorY);
         double[] Strafe = getStrafePower(0, robotErrorX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
         
@@ -224,8 +223,8 @@ public class State_Machine_Auto extends OpMode{
         odo.update();
         Pose2D pos = odo.getPosition();
         double currentHeading = pos.getHeading(AngleUnit.DEGREES);
-        double currentX = pos.getX(DistanceUnit.MM);
-        double currentY = pos.getY(DistanceUnit.MM);
+        double currentX = -pos.getY(DistanceUnit.MM);
+        double currentY = pos.getX(DistanceUnit.MM);
 
         
         previousGamepad1.copy(currentGamepad1);
