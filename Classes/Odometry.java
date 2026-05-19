@@ -18,6 +18,7 @@ odo = new Odometry(hardwareMap, InitialX, InitialY, initialHeading); (Inside Ini
 
 Methods:
 public void update()
+public void reset()
 public Pose2D getPosition()
 public double getX()
 public double getHeadingRadians()
@@ -38,7 +39,7 @@ public class Odometry {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD); 
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); 
 
-        odo.resetPosAndIMU();
+        
         Pose2D startingPosition = new Pose2D(DistanceUnit.MM, initialX, initialY, AngleUnit.RADIANS, initialHeading);
         odo.setPosition(startingPosition);
         
@@ -50,6 +51,10 @@ public class Odometry {
         pos = odo.getPosition();
     }
 
+    public void reset() {
+        odo.resetPosAndIMU();
+    }
+  
     public Pose2D getPosition() {
         return pos;
     }
@@ -62,11 +67,7 @@ public class Odometry {
         return pos.getY(DistanceUnit.MM);
     }
 
-    public double getHeadingRadians() {
-        return pos.getHeading(AngleUnit.RADIANS);
-    }
-    
-    public double getHeadingDegrees() {
-        return pos.getHeading(AngleUnit.DEGREES);
+    public double getHeading(AngleUnit Unit) {
+        return pos.getHeading(Unit);
     }
 }
