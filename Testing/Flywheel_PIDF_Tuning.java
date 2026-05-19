@@ -8,30 +8,26 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 @TeleOp(name = "Flywheel PIDF Tuning")
-public class Flywheel_PIDF_Tuning extends OpMode{
+public class Flywheel_PIDF_Tuning extends OpMode {
 
 
     private Flywheel flywheel;
-
+    private double targetRPM = 2000;
 
 
     @Override
-    public void init(){
+    public void init() {
         flywheel = new Flywheel(hardwareMap);
     }
 
     @Override
-    public void loop(){
+    public void loop() {
     
-    if (gamepad1.right_trigger > 0.1) {
-        motor1.setPower(gamepad1.right_trigger);
-    } else {
-        motor1.setPower(0);
-    }
-    if (gamepad1.left_trigger > 0.1) {
-        motor2.setPower(gamepad1.left_trigger);
-    } else {
-        motor2.setPower(0);
+        if (gamepad1.right_trigger > 0.1) {
+            flywheel.setVelocity(targetRPM);
+        } else {
+            flywheel.setZero();
+        }
     }
     
     
