@@ -45,11 +45,12 @@ public class State_Machine_Auto extends OpMode{
 
     private enum testStates {
         MOVE_TO_POS,
+        SAVE_POS,
         NONE
     }
 
     private testStates currentState = testStates.NONE;
-
+    double savedPos = 0;
 
     double targetMoveX = 0;
     double targetMoveY = 0;
@@ -273,6 +274,8 @@ public class State_Machine_Auto extends OpMode{
                 } else {
                     currentState = testStates.NONE;
                 }
+            case SAVE_POS:
+                
         }
         telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
         telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
