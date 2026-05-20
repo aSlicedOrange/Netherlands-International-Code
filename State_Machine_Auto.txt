@@ -1,0 +1,213 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import org.firstinspires.ftc.teamcode.Classes.Flywheel;
+import org.firstinspires.ftc.teamcode.Classes.Odometry;
+
+@Autonomous(name = "SM_Auto")
+public class State_Machine_Auto extends OpMode{
+
+    private DcMotorEx frontRight;
+    private DcMotorEx frontLeft;
+    private DcMotorEx backRight;
+    private DcMotorEx backLeft;
+
+
+    Flywheel flywheel;
+    
+    Odometry odo;
+
+
+    private enum movementState {
+        MOVE_TO_SHOOT,
+        MOVE_TO_GATE,
+        MOVE_TO_BALL1,
+        MOVE_TO_BALL2
+    }
+
+    private enum miscState {
+        FLYWHEEL_ON,
+        FLYWHEEL_OFF,
+        INTAKE_ON,
+        INTAKE_OFF
+    }
+
+    private enum testStates {
+        MOVE_TO_POS,
+        SAVE_POS,
+        NONE
+    }
+
+    private testStates currentState = testStates.NONE;
+
+    double targetMoveX = 0;
+    double targetMoveY = 0;
+    double targetMoveHeading = 0;
+
+    //For Testing
+    private double deltaHeading = 0;
+    private double deltaX = 0;
+    private double deltaY = 0;
+
+    private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+    private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+
+
+    public boolean moveRobot(double targetX, double targetY, double targetHeading) {
+        double currentHeading = odo.getHeading(AngleUnit.DEGREES);
+        double currentX = -odo.getY(DistanceUnit.MM);
+        double currentY = odo.getX(DistanceUnit.MM);
+
+        double errorX = targetX - currentX;
+        double errorY = targetY - currentY;
+        double errorHeading = targetHeading - currentHeading;
+
+        double ratioXY = errorX / errorY;
+
+        double maxRatio = Math.max(Math.abs(ratioXY), Math.abs(1/ratioXY));
+
+        
+        
+        double forward = ;
+        double strafe = cos(targetHeading - currentHeading);
+        double rotate = (currentX**2 + currentY**2)**0.5;
+        
+
+        double heading = odo.getHeading(AngleUnit.RADIANS);
+
+        double globalForward = forward * Math.cos(heading) - strafe * Math.sin(heading);
+        double globalStrafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
+
+        double flPower = globalForward + globalStrafe + rotate;
+        double frPower = globalForward - globalStrafe - rotate;
+        double blPower = globalForward - globalStrafe + rotate;
+        double brPower = globalForward + globalStrafe - rotate;
+
+        double maxPower = Math.max(Math.abs(flPower), Math.max(Math.abs(frPower),
+                          Math.max(Math.abs(blPower), Math.abs(brPower))));
+        
+        if (maxPower > 1.0) {
+            flPower /= maxPower;
+            frPower /= maxPower;
+            blPower /= maxPower;
+            brPower /= maxPower;
+        }
+
+        // Send power to the motors
+        frontLeft.setPower(flPower);
+        frontRight.setPower(frPower);
+        backLeft.setPower(blPower);
+        backRight.setPower(brPower);
+
+        if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public void init(){
+
+        flywheel = new Flywheel(hardwareMap);
+
+        odo = new Odometry(hardwareMap, 0, 0, 0);
+        
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        
+    }
+    @Override
+    public void loop(){
+        //Testing code
+        odo.update();
+        double currentHeading = odo.getHeading(AngleUnit.DEGREES);
+        double currentX = -odo.getY(DistanceUnit.MM);
+        double currentY = odo.getX(DistanceUnit.MM);
+
+        
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+        
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+            deltaX -= 200;
+        }
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            deltaX += 200;
+        }
+        
+        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+            deltaY += 200;
+        }
+        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+            deltaY -= 200;
+        }
+        
+        if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+            deltaHeading -= 10;
+        }
+        if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
+            deltaHeading += 10;
+        }
+
+
+    
+        
+        
+        telemetry.addData("Delta X:", deltaX);
+        telemetry.addData("Delta Y:", deltaY);
+        telemetry.addData("Delta Heading:", deltaHeading);
+
+        if (currentGamepad1.a && !previousGamepad1.a) {
+            currentState = testStates.SAVE_POS;
+        } else if (gamepad1.y) {
+            currentState = testStates.NONE;
+        } else if (gamepad1.x) {
+            deltaX = 0;
+            deltaY = 0;
+            deltaHeading = 0;
+        }
+
+        switch (currentState) {
+            case MOVE_TO_POS:
+                if (!(moveRobot(targetMoveX, targetMoveY, targetMoveHeading))) {
+                    telemetry.addLine("Moving to Position...");
+                    telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
+                    telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
+                    telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f", currentHeading, targetMoveHeading);
+                } else {
+                    currentState = testStates.NONE;
+                }
+            case SAVE_POS:
+                targetMoveX = currentX + deltaX;
+                targetMoveY = currentY + deltaY;
+                targetMoveHeading = currentHeading + deltaHeading;
+                currentState = testStates.MOVE_TO_POS;
+        }
+        
+        telemetry.update();
+
+        
+    }
+}
