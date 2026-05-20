@@ -50,7 +50,6 @@ public class State_Machine_Auto extends OpMode{
     }
 
     private testStates currentState = testStates.NONE;
-    Pose2d savedPos;
 
     double targetMoveX = 0;
     double targetMoveY = 0;
@@ -87,9 +86,10 @@ public class State_Machine_Auto extends OpMode{
         return (rotateMotorPower);
     }
 
-    public double[] getForwardPower(double errorY) {
+    public double[] getForwardPower(double currentY, double targetY) {
         double minYDifference = 5.0;
-
+        
+        double errorY = targetY - currentY; 
         double divYDifference = 150.0;
         double divRatio = errorY / divYDifference;
         double maxPower = 1;
@@ -134,10 +134,9 @@ public class State_Machine_Auto extends OpMode{
     }
     
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
-        Pose2D pos = odo.getPosition();
-        double currentHeading = -pos.getHeading(AngleUnit.DEGREES);
-        double currentX = -pos.getY(DistanceUnit.MM);
-        double currentY = pos.getX(DistanceUnit.MM);
+        double currentHeading = odo.getHeading(AngleUnit.DEGREES);
+        double currentX = -odo.getY(DistanceUnit.MM);
+        double currentY = odo.getX(DistanceUnit.MM);
 
         double fieldErrorX = targetX - currentX;
         double fieldErrorY = targetY - currentY;
@@ -147,13 +146,13 @@ public class State_Machine_Auto extends OpMode{
         double robotErrorX = fieldErrorX * Math.cos(headingRad) + fieldErrorY * Math.sin(headingRad);
         double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
     
-        double[] Forward = getForwardPower(robotErrorY);
-        double[] Strafe = getStrafePower(0, robotErrorX);
-        double[] Rotate = getRotatePower(currentHeading, targetHeading);
-        
-        //double[] Forward = getForwardPower(currentY, targetY);
-        //double[] Strafe = getStrafePower(currentX, targetX);
+        //double[] Forward = getForwardPower(robotErrorY);
+        //double[] Strafe = getStrafePower(0, robotErrorX);
         //double[] Rotate = getRotatePower(currentHeading, targetHeading);
+        
+        double[] Forward = getForwardPower(currentY, targetY);
+        double[] Strafe = getStrafePower(currentX, targetX);
+        double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
         double[] newWheelSpeeds = new double[4];
@@ -212,10 +211,9 @@ public class State_Machine_Auto extends OpMode{
     public void loop(){
         //Testing code
         odo.update();
-        Pose2D pos = odo.getPosition();
-        double currentHeading = pos.getHeading(AngleUnit.DEGREES);
-        double currentX = -pos.getY(DistanceUnit.MM);
-        double currentY = pos.getX(DistanceUnit.MM);
+        double currentHeading = odo.getHeading(AngleUnit.DEGREES);
+        double currentX = -odo.getY(DistanceUnit.MM);
+        double currentY = odo.getX(DistanceUnit.MM);
 
         
         previousGamepad1.copy(currentGamepad1);
@@ -271,10 +269,10 @@ public class State_Machine_Auto extends OpMode{
                     currentState = testStates.NONE;
                 }
             case SAVE_POS:
-                savedPos = pos;
-                targetMoveX = savedPos.getX() + deltaX;
-                targetMoveY = savedPos.getY() + deltaY;
-                targetMoveHeading = savedPos.getHeading() + deltaHeading;
+                targetMoveX = currentX + deltaX;
+                targetMoveY = currentY + deltaY;
+                targetMoveHeading = currentHeading + deltaHeading;
+                currentState = testStates.MOVE_TO_POS;
         }
         telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
         telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
