@@ -75,17 +75,18 @@ public class State_Machine_Auto extends OpMode{
         double errorY = targetY - currentY;
         double errorHeading = targetHeading - currentHeading;
 
-        double forward = ;
-        double strafe = tan();
 
-        double maxRatio = Math.max(Math.abs(ratioXY), Math.abs(1/ratioXY));
 
-        
-        
-        double forward = ratioXY / ;
-        double strafe = cos(targetHeading - currentHeading);
-        double rotate = (currentX**2 + currentY**2)**0.5;
-        
+        double forward = errorY / errorX;
+        double strafe = errorX / errorY;
+        double rotate = (errorHeading*10) / (errorY**2 + errorX**2)**0.5;
+
+        double maxPower = Math.max(Math.abs(forward), Math.max(Math.abs(strafe), Math.abs(rotate)));
+
+        forward /= maxPower;
+        rotate /= maxPower;
+        rotate /= maxPower;
+
 
         double heading = odo.getHeading(AngleUnit.RADIANS);
 
@@ -113,7 +114,7 @@ public class State_Machine_Auto extends OpMode{
         backLeft.setPower(blPower);
         backRight.setPower(brPower);
 
-        if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
+        if (flPower == 0 && frPower == 0 && blPower == 0 && brPower == 0) {
             return true;
         } else {
             return false;
