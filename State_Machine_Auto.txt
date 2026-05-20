@@ -60,6 +60,8 @@ public class State_Machine_Auto extends OpMode{
     private double deltaX = 0;
     private double deltaY = 0;
 
+    private double minError = 15;
+
     private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
     private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
@@ -73,13 +75,14 @@ public class State_Machine_Auto extends OpMode{
         double errorY = targetY - currentY;
         double errorHeading = targetHeading - currentHeading;
 
-        double ratioXY = errorX / errorY;
+        double forward = ;
+        double strafe = tan();
 
         double maxRatio = Math.max(Math.abs(ratioXY), Math.abs(1/ratioXY));
 
         
         
-        double forward = ;
+        double forward = ratioXY / ;
         double strafe = cos(targetHeading - currentHeading);
         double rotate = (currentX**2 + currentY**2)**0.5;
         
