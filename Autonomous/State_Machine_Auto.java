@@ -50,7 +50,7 @@ public class State_Machine_Auto extends OpMode{
     }
 
     private testStates currentState = testStates.NONE;
-    double savedPos = 0;
+    Pose2d savedPos;
 
     double targetMoveX = 0;
     double targetMoveY = 0;
@@ -251,11 +251,7 @@ public class State_Machine_Auto extends OpMode{
         telemetry.addData("Delta Heading:", deltaHeading);
 
         if (currentGamepad1.a && !previousGamepad1.a) {
-            telemetry.addLine("Target Position Set");
-            targetMoveX = currentX + deltaX;
-            targetMoveY = currentY + deltaY;
-            targetMoveHeading = currentHeading + deltaHeading;
-            currentState = testStates.MOVE_TO_POS;
+            currentState = testStates.SAVE_POS;
         } else if (gamepad1.y) {
             currentState = testStates.NONE;
         } else if (gamepad1.x) {
@@ -275,7 +271,10 @@ public class State_Machine_Auto extends OpMode{
                     currentState = testStates.NONE;
                 }
             case SAVE_POS:
-                
+                savedPos = pos;
+                targetMoveX = savedPos.getX() + deltaX;
+                targetMoveY = savedPos.getY() + deltaY;
+                targetMoveHeading = savedPos.getHeading() + deltaHeading;
         }
         telemetry.addData("X Data", "Current: %.1f | Target: %.1f", currentX, targetMoveX);
         telemetry.addData("Y Data", "Current: %.1f | Target: %.1f", currentY, targetMoveY);
