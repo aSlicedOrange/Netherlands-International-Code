@@ -121,14 +121,14 @@ public class State_Machine_Auto extends OpMode{
         double blPower = globalForward - globalStrafe + rotate;
         double brPower = globalForward + globalStrafe - rotate;
 
-        double maxPower = Math.max(Math.abs(flPower), Math.max(Math.abs(frPower),
+        double maxPowr = Math.max(Math.abs(flPower), Math.max(Math.abs(frPower),
                           Math.max(Math.abs(blPower), Math.abs(brPower))));
         
         if (maxPower > 1.0) {
-            flPower /= maxPower;
-            frPower /= maxPower;
-            blPower /= maxPower;
-            brPower /= maxPower;
+            flPower /= maxPowr;
+            frPower /= maxPowr;
+            blPower /= maxPowr;
+            brPower /= maxPowr;
         }
 
         // Send power to the motors
