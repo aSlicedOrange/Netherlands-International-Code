@@ -72,29 +72,33 @@ public class State_Machine_Auto extends OpMode{
 
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
         double currentHeading = odo.getHeading(AngleUnit.DEGREES);
-        double currentX = -odo.getY(DistanceUnit.MM);
-        double currentY = odo.getX(DistanceUnit.MM);
+        double currentX = -odo.getY();
+        double currentY = odo.getX();
 
         double errorX = targetX - currentX;
         double errorY = targetY - currentY;
         double errorHeading = targetHeading - currentHeading;
 
+        double forward;
+        double strafe;
+        double rotate;
+
         if (Math.abs(errorX) < minXYError && Math.abs(errorY) > minXYError) { //No Strafe
-            double forward = 1;
-            double strafe = 0;
-            double rotate = 1;
+            forward = 1;
+            strafe = 0;
+            rotate = 1;
         } else if (Math.abs(errorY) < minXYError && Math.abs(errorX) > minXYError) { //No Forward
-            double forward = 0;
-            double strafe = 1;
-            double rotate = 1;
+            forward = 0;
+            strafe = 1;
+            rotate = 1;
         } else if (Math.abs(errorX) < minXYError && Math.abs(errorY) < minXYError) {
-            double forward = 0;
-            double strafe = 0;
-            double rotate = 1;
+            forward = 0;
+            strafe = 0;
+            rotate = 1;
         } else {
-            double forward = errorY / errorX;
-            double strafe = errorX / errorY;
-            double rotate = (errorHeading*rotateConst) / Math.sqrt(errorY*errorY + errorX*errorX);
+            forward = errorY / errorX;
+            strafe = errorX / errorY;
+            rotate = (errorHeading*rotateConst) / Math.sqrt(errorY*errorY + errorX*errorX);
         }
         if (Math.abs(errorHeading) < minRotateError) {
             rotate = 0;
@@ -166,8 +170,8 @@ public class State_Machine_Auto extends OpMode{
         //Testing code
         odo.update();
         double currentHeading = odo.getHeading(AngleUnit.DEGREES);
-        double currentX = -odo.getY(DistanceUnit.MM);
-        double currentY = odo.getX(DistanceUnit.MM);
+        double currentX = -odo.getY();
+        double currentY = odo.getX();
 
         
         previousGamepad1.copy(currentGamepad1);
