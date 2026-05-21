@@ -79,20 +79,27 @@ public class State_Machine_Auto extends OpMode{
         double errorY = targetY - currentY;
         double errorHeading = targetHeading - currentHeading;
 
-        if (Math.abs(errorX) < minXYError) { //No Strafe
-            double forward = 
+        if (Math.abs(errorX) < minXYError && Math.abs(errorY) > minXYError) { //No Strafe
+            double forward = 1;
             double strafe = 0;
-            double rotate = (errorHeading*10) / (errorY**2 + errorX**2)**0.5
-        } else if (Math.abs(errorY) < minXYError) { //No Forward
+            double rotate = 1;
+        } else if (Math.abs(errorY) < minXYError && Math.abs(errorX) > minXYError) { //No Forward
             double forward = 0;
-            double strafe =
-            double rotate =
+            double strafe = 1;
+            double rotate = 1;
+        } else if (Math.abs(errorX) < minXYError && Math.abs(errorY) < minXYError) {
+            double forward = 0;
+            double strafe = 0;
+            double rotate = 1;
         } else {
-
             double forward = errorY / errorX;
             double strafe = errorX / errorY;
             double rotate = (errorHeading*rotateConst) / Math.sqrt(errorY*errorY + errorX*errorX);
         }
+        if (Math.abs(errorHeading) < minRotateError) {
+            rotate = 0;
+        }
+
         double maxPower = Math.max(Math.abs(forward), Math.max(Math.abs(strafe), Math.abs(rotate)));
 
         forward /= maxPower;
