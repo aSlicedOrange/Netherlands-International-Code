@@ -60,10 +60,14 @@ public class State_Machine_Auto extends OpMode{
     private double deltaX = 0;
     private double deltaY = 0;
 
-    private double minError = 15;
+    
 
     private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
     private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
+
+    private double minXYError = 15;
+    private double minRotateError = 5;
+    private double rotateConst = 10;
 
 
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
@@ -75,12 +79,20 @@ public class State_Machine_Auto extends OpMode{
         double errorY = targetY - currentY;
         double errorHeading = targetHeading - currentHeading;
 
+        if (Math.abs(errorX) < minXYError) { //No Strafe
+            double forward = 
+            double strafe = 0;
+            double rotate = (errorHeading*10) / (errorY**2 + errorX**2)**0.5
+        } else if (Math.abs(errorY) < minXYError) { //No Forward
+            double forward = 0;
+            double strafe =
+            double rotate =
+        } else {
 
-
-        double forward = errorY / errorX;
-        double strafe = errorX / errorY;
-        double rotate = (errorHeading*10) / (errorY**2 + errorX**2)**0.5;
-
+            double forward = errorY / errorX;
+            double strafe = errorX / errorY;
+            double rotate = (errorHeading*rotateConst) / Math.sqrt(errorY*errorY + errorX*errorX);
+        }
         double maxPower = Math.max(Math.abs(forward), Math.max(Math.abs(strafe), Math.abs(rotate)));
 
         forward /= maxPower;
