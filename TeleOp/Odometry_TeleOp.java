@@ -26,7 +26,7 @@ public class Odometry_TeleOp extends OpMode {
     private Flywheel flywheel;
     
     private Servo servo;
-    private double servoPosition = 0;
+    private double servoPosition;
 
     @Override
     public void init() {
@@ -64,6 +64,7 @@ public class Odometry_TeleOp extends OpMode {
     @Override
     public void loop() {
         odo.update();
+        
 
         moveRobot();
         
@@ -80,7 +81,8 @@ public class Odometry_TeleOp extends OpMode {
         } else {
             intake.setPower(0);
         }
-        
+
+        servoPosition = servo.getPosition();
         if (gamepad1.right_bumper) { 
             servoPosition += 0.02;
         }
