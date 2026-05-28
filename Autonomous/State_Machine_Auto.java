@@ -135,8 +135,8 @@ public class State_Machine_Auto extends OpMode{
     
     public boolean moveRobot(double targetX, double targetY, double targetHeading) {
         double currentHeading = odo.getHeading(AngleUnit.DEGREES);
-        double currentX = -odo.getY(DistanceUnit.MM);
-        double currentY = odo.getX(DistanceUnit.MM);
+        double currentX = -odo.getY();
+        double currentY = odo.getX();
 
         double fieldErrorX = targetX - currentX;
         double fieldErrorY = targetY - currentY;
@@ -212,8 +212,8 @@ public class State_Machine_Auto extends OpMode{
         //Testing code
         odo.update();
         double currentHeading = odo.getHeading(AngleUnit.DEGREES);
-        double currentX = -odo.getY(DistanceUnit.MM);
-        double currentY = odo.getX(DistanceUnit.MM);
+        double currentX = -odo.getY();
+        double currentY = odo.getX();
 
         
         previousGamepad1.copy(currentGamepad1);
