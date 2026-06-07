@@ -16,6 +16,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.Classes.Flywheel;
 import org.firstinspires.ftc.teamcode.Classes.Odometry;
 
+import java.util.ArrayList;
+
 
 @Autonomous(name = "SM_Auto")
 public class State_Machine_Auto extends OpMode{
@@ -47,13 +49,10 @@ public class State_Machine_Auto extends OpMode{
     double[][] chainsError = {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}};
     
     
-    double[][] chainsModular = new double[5][5];
-    double[][] chainsErrorModular = new double[5][5];
-    double[] chainsErrorModularLow = {10, 10, 0.1};
-    double[] chainsErrorModularMedium = ;
-    double[] chainsErrorModularHigh = ;
-    double[] currentErrorModularState = {250, 250, 0.25};
-    double[] ErrorModularStates = {{10, 10, 0.1}, {250, 250, 0.25}, {500, 500, 0.5}}
+ArrayList<double[]> chainsModular = new ArrayList<>();
+ArrayList<double[]> chainsErrorModular = new ArrayList<>();
+    int currentErrorModularState = 0;
+    double[][] ErrorModularStates = {{10, 10, 0.1}, {250, 250, 0.25}, {500, 500, 0.5}};
 
     //Enums
     private enum movementState {
@@ -73,6 +72,7 @@ public class State_Machine_Auto extends OpMode{
     private enum controlState {
         MOVE_TO_POS,
         MOVE_TO_CHAIN,
+        MOVE_TO_CHAIN_MODULAR,
         NONE
     }
     
@@ -197,8 +197,8 @@ public class State_Machine_Auto extends OpMode{
     
     public double[][][] chain(double[][] chainNodes, double[][] errors) {
         double errorX = Math.abs(chainNodes[0][0]) - Math.abs(currentX);
-        double errorY = Math.abs(chainNodes[0][1]) - Math.abs(currentX);
-        double errorHeading = Math.abs(chainNodes[0][2]) - Math.abs(currentX);
+        double errorY = Math.abs(chainNodes[0][1]) - Math.abs(currentY);
+        double errorHeading = Math.abs(chainNodes[0][2]) - Math.abs(currentHeading);
         
     double[][] chainNodesNew = new double[chainNodes.length - 1][3];
     double[][] errorsNew = new double[errors.length - 1][3];
@@ -266,34 +266,38 @@ public class State_Machine_Auto extends OpMode{
             currentState = controlState.MOVE_TO_CHAIN;
         } else if (gamepad1.y) {
             currentState = controlState.NONE;
+        } else if (gamepad1.x) {
+            currentState = controlState.MOVE_TO_CHAIN_MODULAR;
         }
         
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
         
-        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up && chainsModular.length<5) {
-            chainsModular[chainsModular.length][0] = currentX;
-            chainsModular[chainsModular.length][0] = currentX;
-            chainsModular[chainsModular.length][0] = currentX;
+        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up && chainsModular.size()<5) {
+            chainsModular.add(new double[]{currentX, currentY, currentHeading});
+            chainsErrorModular.add(ErrorModularStates[currentErrorModularState]);
             
-        } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down && chainsModular.length>0) {
-            double[][] chainsModularTemp;
-            double[][] chainsErrorModularTemp;
-            for (int i = 1; i < chainsModular.length; i++) {
-                chainsModularTemp[i - 1][0] = chainsModular[i][0];
-                chainsModularTemp[i - 1][1] = chainsModular[i][1];
-                chainsModularTemp[i - 1][2] = chainsModular[i][2];
-            }
-            for (int i = 1; i < chainsErrorModular.length; i++) {
-                chainsErrorModularTemp[i - 1][0] = chainsErrorModular[i][0];
-                chainsErrorModularTemp[i - 1][1] = chainsErrorModular[i][1];
-                chainsErrorModularTemp[i - 1][2] = chainsErrorModular[i][2];
-            }
-            chainsModular = chainsModularTemp;
-            chainsErrorModular = chainsErrorModularTemp;
+        } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down && chainsModular.size()>0) {
+            chainsModular.remove(chainsModular.size() - 1);
+            chainsErrorModular.remove(chainsErrorModular.size() - 1);
+            
+        } else if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left && currentErrorModularState>0) {
+            currentErrorModularState--;
+            
+        } else if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right && currentErrorModularState<3) {
+            currentErrorModularState++;
+            
         }
-
+        
+        
+        double[][][] chainResult;
         switch (currentState) {
+            case NONE:
+                frontLeft.setPower(0);
+                frontRight.setPower(0);
+                backLeft.setPower(0);
+                backRight.setPower(0);
+                break;
             case MOVE_TO_POS:
                 if (!(moveRobot(0, 0, 0))) {
                     telemetry.addLine("Moving to Position...");
@@ -303,26 +307,52 @@ public class State_Machine_Auto extends OpMode{
                 } else {
                     currentState = controlState.NONE;
                 }
+                break;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
                     currentState = controlState.NONE;
                     break;
                 }
-                double[][][] chainResult = chain(chains, chainsError);
+                chainResult = chain(chains, chainsError);
                 if (chainResult[0][0].length > 0) {
                     chains = chainResult[0];
                     chainsError = chainResult[1];
-                    telemetry.addLine("Moving to Position...");
+                    telemetry.addLine("Following Chain...");
                     telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, chains[0][0], 100*(chains[0][0]-currentX));
                     telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, chains[0][1], 100*(chains[0][1]-currentY));
                     telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chains[0][2], 100*(chains[0][2]-currentHeading));
-                    telemetry.addData("Chains Data", "Length: %.1f |", chains.length);
+                    telemetry.addData("Chains Data", "Length: %d |", chains.length);
                 } else {
                     currentState = controlState.NONE;
                 }
+                break;
+            case MOVE_TO_CHAIN_MODULAR:
+                if (chainsModular.isEmpty()) {
+                    currentState = controlState.NONE;
+                    break;
+                } 
+                double[][] modularArray = chainsModular.toArray(new double[0][]);
+                double[][] modularErrorArray = chainsErrorModular.toArray(new double[0][]);
+                chainResult = chain(modularArray, modularErrorArray);
+                chainsModular = new ArrayList<>(java.util.Arrays.asList(chainResult[0]));
+                chainsErrorModular = new ArrayList<>(java.util.Arrays.asList(chainResult[1]));
+                if (chainsModular.size() > 0) {
+                    telemetry.addLine("Following Modular Chain...");
+                    telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, chainsModular.get(0)[0], 100*(chainsModular.get(0)[0]-currentX));
+                    telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, chainsModular.get(0)[1], 100*(chainsModular.get(0)[1]-currentY));
+                    telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chainsModular.get(0)[2], 100*(chainsModular.get(0)[2]-currentHeading));
+                } else {
+                    currentState = controlState.NONE;
+                }
+                break;
+        }
         
+        telemetry.addData("Chains Modular Data", "Length: %d |", chainsModular.size());
+        telemetry.addData("Chains Modular Error Data", "State: %d |", currentErrorModularState);
         telemetry.update();
         
-    }
+    
+    
+    
 }
 }
