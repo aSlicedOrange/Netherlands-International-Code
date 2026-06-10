@@ -289,6 +289,8 @@ public class State_Machine_Auto extends OpMode{
                     movement = movementState.NONE;
                 }
                 break;
+            case MOVE_TO_SHOOT:
+                
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
                     movement = movementState.NONE;
