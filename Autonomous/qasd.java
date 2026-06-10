@@ -54,7 +54,7 @@ public class State_Machine_Auto extends OpMode{
     double[] startPos = {850.9, 3403.6, 0};
     double[] stopPos = new double[3];
     ArrayList<String[]> stateSequence = new ArrayList<>();
-    stateSequence.add()
+    stateSequence.add("MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "PRE_TELEOP")
     boolean hasStopped = false
     
     double[][] chains = {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}};
