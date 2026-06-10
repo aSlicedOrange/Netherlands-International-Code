@@ -44,6 +44,9 @@ public class State_Machine_Auto extends OpMode{
     double targetMoveHeading;
     double targetMoveX;
     double targetMoveY;
+
+    double[] startPos = {0, 0, 0};
+    double[] stopPos = new double[3];
     
     double[][] chains = {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}};
     double[][] chainsError = {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}};
@@ -62,21 +65,20 @@ public class State_Machine_Auto extends OpMode{
         FLYWHEEL_ON,
         FLYWHEEL_LOW,
         FLYWHEEL_OFF
-        
     }
-    private enum intakeState {
+    private enum intakeState
         INTAKE_ON,
         INTAKE_OFF
     }
     
-    private controlState currentState = controlState.NONE;
+    private movementState movement = movementState.MOVE_TO_SHOOT;
+    private turretState turret = turretState.FLYWHEEL_LOW;
+    private intakeState intake = intakeState.INTAKE_OFF;
 
     double currentX;
     double currentY;
     double currentHeading;
     
-    private com.qualcomm.robotcore.hardware.Gamepad currentGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
-    private com.qualcomm.robotcore.hardware.Gamepad previousGamepad1 = new com.qualcomm.robotcore.hardware.Gamepad();
 
     public double[] getRotatePower(double currentHeading, double targetHeading) {
         double errorHeading = targetHeading - currentHeading;
@@ -225,7 +227,7 @@ public class State_Machine_Auto extends OpMode{
 
         flywheel = new Flywheel(hardwareMap);
 
-        odo = new Odometry(hardwareMap, 0, 0, 0);
+        odo = new Odometry(hardwareMap, startPos[0], startPos[1], startPos[2]);
         currentX = 0;
         currentY = 0;
         currentHeading = 0;
@@ -253,59 +255,15 @@ public class State_Machine_Auto extends OpMode{
         currentY = -odo.getX();
         
 
-        if (gamepad1.a) {
-            currentState = controlState.MOVE_TO_POS;
-        } else if (gamepad1.b) {
-            currentState = controlState.MOVE_TO_CHAIN;
-        } else if (gamepad1.y) {
-            currentState = controlState.NONE;
-        } else if (gamepad1.x) {
-            currentState = controlState.MOVE_TO_CHAIN_MODULAR;
-        }
-        
-        previousGamepad1.copy(currentGamepad1);
-        currentGamepad1.copy(gamepad1);
-        
-        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up && chainsModular.size()<5) {
-            chainsModular.add(new double[]{currentX, currentY, currentHeading});
-            chainsErrorModular.add(ErrorModularStates[currentErrorModularState]);
-            
-        } else if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down && chainsModular.size()>0) {
-            chainsModular.remove(chainsModular.size() - 1);
-            chainsErrorModular.remove(chainsErrorModular.size() - 1);
-            
-        } else if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left && currentErrorModularState>0) {
-            currentErrorModularState--;
-            
-        } else if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right && currentErrorModularState<3) {
-            currentErrorModularState++;
-            
-        } else if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-            StringBuilder chainBuilder = new StringBuilder("AUTO CHAIN POINTS: {");
-            for (int i = 0; i < chainsModular.size(); i++) {
-                double[] node = chainsModular.get(i);
-                chainBuilder.append(String.format("{%.0f, %.0f, %.0f}", node[0], node[1], node[2]));
-                if (i < chainsModular.size() - 1) {
-                    chainBuilder.append(", ");
-                }
-            }
-            chainBuilder.append("}");
-            
-            StringBuilder errorBuilder = new StringBuilder("AUTO CHAIN ERRORS: {");
-            for (int i = 0; i < chainsErrorModular.size(); i++) {
-                double[] err = chainsErrorModular.get(i);
-                errorBuilder.append(String.format("{%.0f, %.0f, %.2f}", err[0], err[1], err[2]));
-                if (i < chainsErrorModular.size() - 1) {
-                    errorBuilder.append(", ");
-                }
-            }
-            errorBuilder.append("}");
-            
-            com.qualcomm.robotcore.util.RobotLog.dd("FTC_AUTO", "CHAIN POINTS: " +chainBuilder.toString());
-            com.qualcomm.robotcore.util.RobotLog.dd("FTC_AUTO", "CHAIN ERRORS: " +errorBuilder.toString());
-        }
-        
-        
+    private enum movementState {
+        MOVE_TO_SHOOT,
+        MOVE_TO_GATE,
+        MOVE_TO_BALL1,
+        MOVE_TO_BALL2,
+        STOP,
+        NONE
+    }
+
         double[][][] chainResult;
         switch (currentState) {
             case NONE:
@@ -313,37 +271,8 @@ public class State_Machine_Auto extends OpMode{
                 frontRight.setPower(0);
                 backLeft.setPower(0);
                 backRight.setPower(0);
-                
-                StringBuilder chainBuilder = new StringBuilder("CHAIN POINTS: {");
-                for (int i = 0; i < chainsModular.size(); i++) {
-                    double[] node = chainsModular.get(i);
-                    chainBuilder.append(String.format("{%.0f, %.0f, %.0f}", node[0], node[1], node[2]));
-                    if (i < chainsModular.size() - 1) {
-                        chainBuilder.append(", ");
-                    }
-                }
-                chainBuilder.append("}");
-                
-                StringBuilder errorBuilder = new StringBuilder("CHAIN ERRORS: {");
-                for (int i = 0; i < chainsErrorModular.size(); i++) {
-                    double[] err = chainsErrorModular.get(i);
-                    errorBuilder.append(String.format("{%.0f, %.0f, %.2f}", err[0], err[1], err[2]));
-                    if (i < chainsErrorModular.size() - 1) {
-                        errorBuilder.append(", ");
-                    }
-                }
-            errorBuilder.append("}");
-    
-    
-    
-    
-                telemetry.addLine("--- RECORDED CHAIN DATA ---");
-                telemetry.addData("POINTS:", chainBuilder.toString());
-                telemetry.addData("ERRORS:", errorBuilder.toString());
-                telemetry.addLine("--------------------------");
-                
-                com.qualcomm.robotcore.util.RobotLog.d(chainBuilder.toString());
-                com.qualcomm.robotcore.util.RobotLog.d(errorBuilder.toString());
+                turret = turretState.FLYWHEEL_OFF;
+                intake = intakeState.INTAKE_OFF;
                 break;
             case MOVE_TO_POS:
                 if (!(moveRobot(0, 0, 0))) {
