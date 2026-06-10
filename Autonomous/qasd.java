@@ -13,6 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.Classes.Flywheel;
 import org.firstinspires.ftc.teamcode.Classes.Odometry;
 
@@ -27,6 +29,7 @@ public class State_Machine_Auto extends OpMode{
     private DcMotorEx backRight;
     private DcMotorEx backLeft;
 
+    private ElapsedTime stateTimer;
 
     Flywheel flywheel;
     
@@ -48,10 +51,11 @@ public class State_Machine_Auto extends OpMode{
     double flywheelTargetRPM = 4000;
     double flywheelLowRPM = 1500;
     
-    double[] startPos = {0, 0, 0};
+    double[] startPos = {850.9, 3403.6, 0};
     double[] stopPos = new double[3];
     ArrayList<String[]> stateSequence = new ArrayList<>();
     stateSequence.add()
+    boolean hasStopped = false
     
     double[][] chains = {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}};
     double[][] chainsError = {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}};
@@ -76,9 +80,9 @@ public class State_Machine_Auto extends OpMode{
         INTAKE_OFF
     }
     
-    private movementState movement = movementState.MOVE_TO_SHOOT;
-    private turretState turret = turretState.FLYWHEEL_ON;
-    private intakeState intake = intakeState.INTAKE_OFF;
+    private movementState movementS = movementState.MOVE_TO_SHOOT;
+    private turretState turretS = turretState.FLYWHEEL_ON;
+    private intakeState intakeS = intakeState.INTAKE_OFF;
 
     double currentX;
     double currentY;
@@ -229,7 +233,8 @@ public class State_Machine_Auto extends OpMode{
     
     @Override
     public void init(){
-
+        stateTimer = new ElapsedTime();
+        
         flywheel = new Flywheel(hardwareMap);
 
         odo = new Odometry(hardwareMap, startPos[0], startPos[1], startPos[2]);
@@ -251,6 +256,12 @@ public class State_Machine_Auto extends OpMode{
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         
     }
+    
+    @Override
+    public void start() {
+        stateTimer.reset();
+    }
+    
     @Override
     public void loop(){
         //Testing code
@@ -270,30 +281,42 @@ public class State_Machine_Auto extends OpMode{
     }
 
         double[][][] chainResult;
-        switch (movement) {
+        switch (movementS) {
             case NONE:
                 frontLeft.setPower(0);
                 frontRight.setPower(0);
                 backLeft.setPower(0);
                 backRight.setPower(0);
-                turret = turretState.FLYWHEEL_OFF;
-                intake = intakeState.INTAKE_OFF;
+                turretS = turretState.FLYWHEEL_OFF;
+                intakeS = intakeState.INTAKE_OFF;
                 break;
             case STOP:
-                if (!(moveRobot(stopPos[0], stopPos[1], stopPos[2]))) {
-                    telemetry.addLine("Moving to Position...");
-                    telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
-                    telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
-                    telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
-                } else {
-                    movement = movementState.NONE;
+                boolean stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2])
+                telemetry.addLine("Moving to Position...");
+                telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
+                telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
+                telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
+                boolean stopCheckPrevious = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
+                if (stopCheckCurrent && stopCheckPrevious) {
+                    if (!(hasStopped)) {
+                        stateTimer.reset();
+                        hasStopped = true;
+                        intakeS = intakeState.INTAKE_ON
+                    }
+                    if (stateTimer.milliseconds() > 550) {
+                        stateSequence.remove(0);
+                    }
+                    
                 }
                 break;
             case MOVE_TO_SHOOT:
-                
+                stopPos[0] = 1206.5;
+                stopPos[0] = 2159.0;
+                stopPos[0] = -40.0;
+                movementS = movementState.STOP
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
-                    movement = movementState.NONE;
+                    movementS = movementState.NONE;
                     break;
                 }
                 chainResult = chain(chains, chainsError);
@@ -306,12 +329,12 @@ public class State_Machine_Auto extends OpMode{
                     telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chains[0][2], 100*(chains[0][2]-currentHeading));
                     telemetry.addData("Chains Data", "Length: %d |", chains.length);
                 } else {
-                    movement = movementState.NONE;
+                    movementS = movementState.NONE;
                 }
                 break;
         }
 
-        switch (turret) {
+        switch (turretS) {
             case FLYWHEEL_ON:
                 //Turret backplate and rev code here
                 flywheel.setRPM(flywheelTargetRPM);
@@ -324,7 +347,7 @@ public class State_Machine_Auto extends OpMode{
                 break;
         }
         
-        switch (intake) {
+        switch (intakeS) {
             case INTAKE_ON:
                 intake.setPower(1);
                 break;
