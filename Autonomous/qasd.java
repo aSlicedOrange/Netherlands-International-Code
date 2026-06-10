@@ -45,8 +45,13 @@ public class State_Machine_Auto extends OpMode{
     double targetMoveX;
     double targetMoveY;
 
+    double flywheelTargetRPM = 4000;
+    double flywheelLowRPM = 1500;
+    
     double[] startPos = {0, 0, 0};
     double[] stopPos = new double[3];
+    ArrayList<String[]> stateSequence = new ArrayList<>();
+    stateSequence.add()
     
     double[][] chains = {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}};
     double[][] chainsError = {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}};
@@ -72,7 +77,7 @@ public class State_Machine_Auto extends OpMode{
     }
     
     private movementState movement = movementState.MOVE_TO_SHOOT;
-    private turretState turret = turretState.FLYWHEEL_LOW;
+    private turretState turret = turretState.FLYWHEEL_ON;
     private intakeState intake = intakeState.INTAKE_OFF;
 
     double currentX;
@@ -265,7 +270,7 @@ public class State_Machine_Auto extends OpMode{
     }
 
         double[][][] chainResult;
-        switch (currentState) {
+        switch (movement) {
             case NONE:
                 frontLeft.setPower(0);
                 frontRight.setPower(0);
@@ -274,19 +279,19 @@ public class State_Machine_Auto extends OpMode{
                 turret = turretState.FLYWHEEL_OFF;
                 intake = intakeState.INTAKE_OFF;
                 break;
-            case MOVE_TO_POS:
-                if (!(moveRobot(0, 0, 0))) {
+            case STOP:
+                if (!(moveRobot(stopPos[0], stopPos[1], stopPos[2]))) {
                     telemetry.addLine("Moving to Position...");
                     telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
                     telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
                     telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
                 } else {
-                    currentState = controlState.NONE;
+                    movement = movementState.NONE;
                 }
                 break;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
-                    currentState = controlState.NONE;
+                    movement = movementState.NONE;
                     break;
                 }
                 chainResult = chain(chains, chainsError);
@@ -299,32 +304,32 @@ public class State_Machine_Auto extends OpMode{
                     telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chains[0][2], 100*(chains[0][2]-currentHeading));
                     telemetry.addData("Chains Data", "Length: %d |", chains.length);
                 } else {
-                    currentState = controlState.NONE;
-                }
-                break;
-            case MOVE_TO_CHAIN_MODULAR:
-                if (chainsModular.isEmpty()) {
-                    currentState = controlState.NONE;
-                    break;
-                } 
-                double[][] modularArray = chainsModular.toArray(new double[0][]);
-                double[][] modularErrorArray = chainsErrorModular.toArray(new double[0][]);
-                chainResult = chain(modularArray, modularErrorArray);
-                chainsModular = new ArrayList<>(java.util.Arrays.asList(chainResult[0]));
-                chainsErrorModular = new ArrayList<>(java.util.Arrays.asList(chainResult[1]));
-                if (chainsModular.size() > 0) {
-                    telemetry.addLine("Following Modular Chain...");
-                    telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, chainsModular.get(0)[0], 100*(chainsModular.get(0)[0]-currentX));
-                    telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, chainsModular.get(0)[1], 100*(chainsModular.get(0)[1]-currentY));
-                    telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chainsModular.get(0)[2], 100*(chainsModular.get(0)[2]-currentHeading));
-                } else {
-                    currentState = controlState.NONE;
+                    movement = movementState.NONE;
                 }
                 break;
         }
+
+        switch (turret) {
+            case FLYWHEEL_ON:
+                //Turret backplate and rev code here
+                flywheel.setRPM(flywheelTargetRPM);
+                break;
+            case FLYWHEEL_LOW:
+                flywheel.setRPM(flywheelLowRPM);
+                break;
+            case FLYWHEEL_OFF:
+                flywheel.setZero();
+                break;
+        }
         
-        telemetry.addData("Chains Modular Data", "Length: %d |", chainsModular.size());
-        telemetry.addData("Chains Modular Error Data", "State: %d |", currentErrorModularState);
+        switch (intake) {
+            case INTAKE_ON:
+                intake.setPower(1);
+                break;
+            case INTAKE_OFF:
+                intake.setPower(0);
+                break;
+        }
         telemetry.update();
         
     
