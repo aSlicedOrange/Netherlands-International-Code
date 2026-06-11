@@ -40,8 +40,8 @@ public class State_Machine_Auto extends OpMode{
     double minForwardDifference = 10.0;
     double minStrafeDifference = 10.0;
     
-    double divRotateDifference = 30.0;
-    double divForwardDifference = 300.0;
+    double divRotateDifference = 90.0;
+    double divForwardDifference = 400.0;
     double divStrafeDifference = 300.0;
     
     double targetMoveHeading;
