@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.Classes.Odometry;
 import java.util.ArrayList;
 
 
-@Autonomous(name = "SM_Auto")
-public class State_Machine_Auto extends OpMode{
+@Autonomous(name = "Odometry Auto Tuner")
+public class Odometry_Auto_Tuner extends OpMode{
 
     private DcMotorEx frontRight;
     private DcMotorEx frontLeft;
@@ -37,8 +37,8 @@ public class State_Machine_Auto extends OpMode{
     double minForwardDifference = 10.0;
     double minStrafeDifference = 10.0;
     
-    double divRotateDifference = 30.0;
-    double divForwardDifference = 300.0;
+    double divRotateDifference = 90.0;
+    double divForwardDifference = 400.0;
     double divStrafeDifference = 300.0;
     
     double targetMoveHeading;
@@ -287,6 +287,29 @@ ArrayList<double[]> chainsErrorModular = new ArrayList<>();
         } else if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right && currentErrorModularState<3) {
             currentErrorModularState++;
             
+        } else if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
+            StringBuilder chainBuilder = new StringBuilder("AUTO CHAIN POINTS: {");
+            for (int i = 0; i < chainsModular.size(); i++) {
+                double[] node = chainsModular.get(i);
+                chainBuilder.append(String.format("{%.0f, %.0f, %.0f}", node[0], node[1], node[2]));
+                if (i < chainsModular.size() - 1) {
+                    chainBuilder.append(", ");
+                }
+            }
+            chainBuilder.append("}");
+            
+            StringBuilder errorBuilder = new StringBuilder("AUTO CHAIN ERRORS: {");
+            for (int i = 0; i < chainsErrorModular.size(); i++) {
+                double[] err = chainsErrorModular.get(i);
+                errorBuilder.append(String.format("{%.0f, %.0f, %.2f}", err[0], err[1], err[2]));
+                if (i < chainsErrorModular.size() - 1) {
+                    errorBuilder.append(", ");
+                }
+            }
+            errorBuilder.append("}");
+            
+            com.qualcomm.robotcore.util.RobotLog.dd("FTC_AUTO", "CHAIN POINTS: " +chainBuilder.toString());
+            com.qualcomm.robotcore.util.RobotLog.dd("FTC_AUTO", "CHAIN ERRORS: " +errorBuilder.toString());
         }
         
         
@@ -297,6 +320,37 @@ ArrayList<double[]> chainsErrorModular = new ArrayList<>();
                 frontRight.setPower(0);
                 backLeft.setPower(0);
                 backRight.setPower(0);
+                
+                StringBuilder chainBuilder = new StringBuilder("CHAIN POINTS: {");
+                for (int i = 0; i < chainsModular.size(); i++) {
+                    double[] node = chainsModular.get(i);
+                    chainBuilder.append(String.format("{%.0f, %.0f, %.0f}", node[0], node[1], node[2]));
+                    if (i < chainsModular.size() - 1) {
+                        chainBuilder.append(", ");
+                    }
+                }
+                chainBuilder.append("}");
+                
+                StringBuilder errorBuilder = new StringBuilder("CHAIN ERRORS: {");
+                for (int i = 0; i < chainsErrorModular.size(); i++) {
+                    double[] err = chainsErrorModular.get(i);
+                    errorBuilder.append(String.format("{%.0f, %.0f, %.2f}", err[0], err[1], err[2]));
+                    if (i < chainsErrorModular.size() - 1) {
+                        errorBuilder.append(", ");
+                    }
+                }
+            errorBuilder.append("}");
+    
+    
+    
+    
+                telemetry.addLine("--- RECORDED CHAIN DATA ---");
+                telemetry.addData("POINTS:", chainBuilder.toString());
+                telemetry.addData("ERRORS:", errorBuilder.toString());
+                telemetry.addLine("--------------------------");
+                
+                com.qualcomm.robotcore.util.RobotLog.d(chainBuilder.toString());
+                com.qualcomm.robotcore.util.RobotLog.d(errorBuilder.toString());
                 break;
             case MOVE_TO_POS:
                 if (!(moveRobot(0, 0, 0))) {
