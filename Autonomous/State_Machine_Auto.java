@@ -56,9 +56,12 @@ public class State_Machine_Auto extends OpMode{
     ArrayList<String[]> stateSequence = new ArrayList<>();
     stateSequence.add("MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "PRE_TELEOP")
     boolean hasStopped = false
-    
-    double[][] chains = {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}};
-    double[][] chainsError = {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}};
+
+    double[][][] chainSequence = {{{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}, {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}};
+    double[][][] chainErrorSequience = {{{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}, {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}};
+
+    double[][] chains = chainSequence[0];
+    double[][] chainsError = chainErrorSequence[0];
 
     //Enums
     private enum movementState {
@@ -271,16 +274,11 @@ public class State_Machine_Auto extends OpMode{
         currentY = -odo.getX();
         
 
-    private enum movementState {
-        MOVE_TO_SHOOT,
-        MOVE_TO_GATE,
-        MOVE_TO_BALL1,
-        MOVE_TO_BALL2,
-        STOP,
-        NONE
-    }
 
         double[][][] chainResult;
+
+        boolean stopCheckCurrent;
+        boolean stopCheckPrevious;
         switch (movementS) {
             case NONE:
                 frontLeft.setPower(0);
@@ -291,12 +289,11 @@ public class State_Machine_Auto extends OpMode{
                 intakeS = intakeState.INTAKE_OFF;
                 break;
             case STOP:
-                boolean stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2])
+                stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2])
                 telemetry.addLine("Moving to Position...");
                 telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
                 telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
                 telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
-                boolean stopCheckPrevious = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                 if (stopCheckCurrent && stopCheckPrevious) {
                     if (!(hasStopped)) {
                         stateTimer.reset();
@@ -306,6 +303,7 @@ public class State_Machine_Auto extends OpMode{
                     if (stateTimer.milliseconds() > 550) {
                         stateSequence.remove(0);
                     }
+                    stopCheckPrevious = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                     
                 }
                 break;
@@ -313,7 +311,9 @@ public class State_Machine_Auto extends OpMode{
                 stopPos[0] = 1206.5;
                 stopPos[0] = 2159.0;
                 stopPos[0] = -40.0;
-                movementS = movementState.STOP
+                movementS = movementState.STOP;
+                stopCheckCurrent = false;
+                stopCheckPrevious = false;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
                     movementS = movementState.NONE;
@@ -329,6 +329,8 @@ public class State_Machine_Auto extends OpMode{
                     telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, chains[0][2], 100*(chains[0][2]-currentHeading));
                     telemetry.addData("Chains Data", "Length: %d |", chains.length);
                 } else {
+                    chainSequence.remove(0);
+                    chainErrorSequence.remove(0);
                     movementS = movementState.NONE;
                 }
                 break;
