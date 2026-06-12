@@ -312,6 +312,7 @@ public class State_Machine_Auto extends OpMode{
                 stopPos[0] = 2159.0;
                 stopPos[0] = -40.0;
                 movementS = movementState.STOP;
+                turretS = turretState.FLYWHEEL_ON;
                 stopCheckCurrent = false;
                 stopCheckPrevious = false;
             case MOVE_TO_CHAIN:
