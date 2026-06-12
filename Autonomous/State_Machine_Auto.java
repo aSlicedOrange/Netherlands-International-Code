@@ -33,11 +33,12 @@ public class State_Machine_Auto extends OpMode {
     private ElapsedTime stopTimer;
 
     Flywheel flywheel;
+    private DcMotor intake;
     
     Odometry odo;
 
     //P Values
-    double minDegreeDifference = 0.1;
+    double minRotateDifference = 0.1;
     double minForwardDifference = 10.0;
     double minStrafeDifference = 10.0;
     
@@ -54,23 +55,15 @@ public class State_Machine_Auto extends OpMode {
     
     double[] startPos = {850.9, 3403.6, 0};
     double[] stopPos = new double[3];
-    ArrayList<String[]> stateSequence = new ArrayList<>();
-    stateSequence.add("MOVE_TO_SHOOT");
-    stateSequence.add("MOVE_TO_CHAIN");
-    stateSequence.add("MOVE_TO_SHOOT");
-    stateSequence.add("MOVE_TO_CHAIN");
-    stateSequence.add("MOVE_TO_SHOOT");
-    stateSequence.add("MOVE_TO_CHAIN");
-    stateSequence.add("MOVE_TO_SHOOT");
-    stateSequence.add("PRE_TELEOP");
+    ArrayList<String> stateSequence = new ArrayList<>();
+    ArrayList<double[][]> chainSequence = new ArrayList<>();
+    ArrayList<double[][]> chainErrorSequence = new ArrayList<>();
 
     boolean hasStopped = false;
-
-    double[][][] chainSequence = {{{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}, {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}};
-    double[][][] chainErrorSequence = {{{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}, {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}};
-
-    double[][] chains = chainSequence[0];
-    double[][] chainsError = chainErrorSequence[0];
+    
+    double[][] chains;
+    double[][] chainsError;
+    
 
     private enum movementState {
         MOVE_TO_SHOOT,
@@ -109,7 +102,7 @@ public class State_Machine_Auto extends OpMode {
 
         
         double[] rotateMotorPower = {0.0, 0.0, 0.0, 0.0};
-        if (!(Math.abs(errorHeading) < minDegreeDifference)) {
+        if (!(Math.abs(errorHeading) < minRotateDifference)) {
             rotateMotorPower[0] = motorPower; //fL
             rotateMotorPower[1] = -motorPower; //fR
             rotateMotorPower[2] = motorPower; //bL
@@ -244,6 +237,7 @@ public class State_Machine_Auto extends OpMode {
         stateTimer = new ElapsedTime();
         
         flywheel = new Flywheel(hardwareMap);
+        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
 
         odo = new Odometry(hardwareMap, startPos[0], startPos[1], startPos[2]);
         currentX = 0;
@@ -262,7 +256,20 @@ public class State_Machine_Auto extends OpMode {
         
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        
+        stateSequence.add("MOVE_TO_SHOOT");
+        stateSequence.add("MOVE_TO_CHAIN");
+        stateSequence.add("MOVE_TO_SHOOT");
+        stateSequence.add("MOVE_TO_CHAIN");
+        stateSequence.add("MOVE_TO_SHOOT");
+        stateSequence.add("MOVE_TO_CHAIN");
+        stateSequence.add("MOVE_TO_SHOOT");
+        stateSequence.add("PRE_TELEOP");
+        chainSequence.add({{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
+        chainSequence.add({{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
+        chainErrorSequence.add({{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
+        chainErrorSequence.add({{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
+        chains = chainSequence[0];
+        chainsError = chainErrorSequence[0];
     }
     
     @Override
@@ -283,7 +290,6 @@ public class State_Machine_Auto extends OpMode {
 
         double[][][] chainResult;
 
-        boolean stopCheck;
         switch (movementS) {
             case NONE:
                 frontLeft.setPower(0);
@@ -294,12 +300,12 @@ public class State_Machine_Auto extends OpMode {
                 intakeS = intakeState.INTAKE_OFF;
                 break;
             case STOP:
-                stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
+                boolean stopCheck = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                 telemetry.addLine("Moving to Position...");
                 telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
                 telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
                 telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
-                if (!stopCheckCurrent) {
+                if (!stopCheck) {
                     stopTimer.reset();
                 }
                 if (stopTimer.milliseconds() > 50) {
@@ -319,8 +325,7 @@ public class State_Machine_Auto extends OpMode {
                 stopPos[2] = -40.0;
                 movementS = movementState.STOP;
                 turretS = turretState.FLYWHEEL_ON;
-                stopCheckCurrent = false;
-                stopCheckPrevious = false;
+                stopCheck = false;
                 chainSequence.remove(0);
                 chainErrorSequence.remove(0);
                 break;
