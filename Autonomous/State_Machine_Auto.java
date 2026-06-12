@@ -67,9 +67,7 @@ public class State_Machine_Auto extends OpMode {
 
     private enum movementState {
         MOVE_TO_SHOOT,
-        MOVE_TO_GATE,
-        MOVE_TO_BALL1,
-        MOVE_TO_BALL2,
+        MOVE_TO_CHAIN,
         STOP,
         NONE
     }
@@ -264,12 +262,12 @@ public class State_Machine_Auto extends OpMode {
         stateSequence.add("MOVE_TO_CHAIN");
         stateSequence.add("MOVE_TO_SHOOT");
         stateSequence.add("PRE_TELEOP");
-        chainSequence.add({{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
-        chainSequence.add({{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
-        chainErrorSequence.add({{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
-        chainErrorSequence.add({{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
-        chains = chainSequence[0];
-        chainsError = chainErrorSequence[0];
+        chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
+        chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
+        chainErrorSequence.add(new double[][] {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
+        chainErrorSequence.add(new double[][] {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
+        chains = chainSequence.get(0);
+        chainsError = chainErrorSequence.get(0);
     }
     
     @Override
