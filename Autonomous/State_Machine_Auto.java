@@ -30,6 +30,7 @@ public class State_Machine_Auto extends OpMode{
     private DcMotorEx backLeft;
 
     private ElapsedTime stateTimer;
+    private ElapsedTime stopTimer;
 
     Flywheel flywheel;
     
@@ -54,16 +55,23 @@ public class State_Machine_Auto extends OpMode{
     double[] startPos = {850.9, 3403.6, 0};
     double[] stopPos = new double[3];
     ArrayList<String[]> stateSequence = new ArrayList<>();
-    stateSequence.add("MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "MOVE_TO_CHAIN", "MOVE_TO_SHOOT", "PRE_TELEOP")
-    boolean hasStopped = false
+    stateSequence.add("MOVE_TO_SHOOT");
+    stateSequence.add("MOVE_TO_CHAIN");
+    stateSequence.add("MOVE_TO_SHOOT");
+    stateSequence.add("MOVE_TO_CHAIN");
+    stateSequence.add("MOVE_TO_SHOOT");
+    stateSequence.add("MOVE_TO_CHAIN");
+    stateSequence.add("MOVE_TO_SHOOT");
+    stateSequence.add("PRE_TELEOP");
+
+    boolean hasStopped = false;
 
     double[][][] chainSequence = {{{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}, {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}}};
-    double[][][] chainErrorSequience = {{{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}, {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}};
+    double[][][] chainErrorSequence = {{{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}, {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}}};
 
     double[][] chains = chainSequence[0];
     double[][] chainsError = chainErrorSequence[0];
 
-    //Enums
     private enum movementState {
         MOVE_TO_SHOOT,
         MOVE_TO_GATE,
@@ -72,13 +80,12 @@ public class State_Machine_Auto extends OpMode{
         STOP,
         NONE
     }
-
     private enum turretState {
         FLYWHEEL_ON,
         FLYWHEEL_LOW,
         FLYWHEEL_OFF
     }
-    private enum intakeState
+    private enum intakeState {
         INTAKE_ON,
         INTAKE_OFF
     }
@@ -263,6 +270,7 @@ public class State_Machine_Auto extends OpMode{
     @Override
     public void start() {
         stateTimer.reset();
+        stopTimer.reset();
     }
     
     @Override
@@ -277,8 +285,7 @@ public class State_Machine_Auto extends OpMode{
 
         double[][][] chainResult;
 
-        boolean stopCheckCurrent;
-        boolean stopCheckPrevious;
+        boolean stopCheck;
         switch (movementS) {
             case NONE:
                 frontLeft.setPower(0);
@@ -294,17 +301,18 @@ public class State_Machine_Auto extends OpMode{
                 telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
                 telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
                 telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
-                if (stopCheckCurrent && stopCheckPrevious) {
+                if (!stopCheckCurrent) {
+                    stopTimer.reset();
+                }
+                if (stopTimer.milliseconds() > 50) {
                     if (!(hasStopped)) {
                         stateTimer.reset();
                         hasStopped = true;
-                        intakeS = intakeState.INTAKE_ON
+                        intakeS = intakeState.INTAKE_ON;
                     }
                     if (stateTimer.milliseconds() > 550) {
                         stateSequence.remove(0);
                     }
-                    stopCheckPrevious = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
-                    
                 }
                 break;
             case MOVE_TO_SHOOT:
@@ -315,6 +323,8 @@ public class State_Machine_Auto extends OpMode{
                 turretS = turretState.FLYWHEEL_ON;
                 stopCheckCurrent = false;
                 stopCheckPrevious = false;
+                chainSequence.remove(0);
+                chainErrorSequence.remove(0);
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
                     movementS = movementState.NONE;
