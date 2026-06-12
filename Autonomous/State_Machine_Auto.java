@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 
 @Autonomous(name = "State Machine Auto")
-public class State_Machine_Auto extends OpMode{
+public class State_Machine_Auto extends OpMode {
 
     private DcMotorEx frontRight;
     private DcMotorEx frontLeft;
@@ -119,8 +119,7 @@ public class State_Machine_Auto extends OpMode{
         return (rotateMotorPower);
     }
 
-    public double[] getForwardPower(double currentY, double targetY) {
-        double errorY = targetY - currentY; 
+    public double[] getForwardPower(double errorY) {
         double divRatio = errorY / divForwardDifference;
         double maxPower = 1;
 
@@ -139,9 +138,7 @@ public class State_Machine_Auto extends OpMode{
 
     }
 
-    public double[] getStrafePower(double currentX, double targetX) {
-        double errorX = targetX - currentX;
-        
+    public double[] getStrafePower(double errorX) {        
         double divRatio = errorX / divStrafeDifference;
         double maxPower = 1;
 
@@ -168,13 +165,10 @@ public class State_Machine_Auto extends OpMode{
     
         double robotErrorX = fieldErrorX * Math.cos(headingRad) + fieldErrorY * Math.sin(headingRad);
         double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
-    
-        //double[] Forward = getForwardPower(robotErrorY);
-        //double[] Strafe = getStrafePower(0, robotErrorX);
-        //double[] Rotate = getRotatePower(currentHeading, targetHeading);
+
         
-        double[] Forward = getForwardPower(currentY, targetY);
-        double[] Strafe = getStrafePower(currentX, targetX);
+        double[] Forward = getForwardPower(fieldErrorY);
+        double[] Strafe = getStrafePower(fieldErrorX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
@@ -202,7 +196,11 @@ public class State_Machine_Auto extends OpMode{
         backLeft.setPower(newWheelSpeeds[2]);
         backRight.setPower(newWheelSpeeds[3]);
 
-        if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
+        if (Math.abs(fieldErrorX) <= minStrafeDifference && Math.abs(fieldErrorY) <= minForwardDifference && Math.abs(targetHeading-currentHeading) <= minRotateDifference) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
             return true;
         } else {
             return false;
@@ -274,7 +272,7 @@ public class State_Machine_Auto extends OpMode{
     }
     
     @Override
-    public void loop(){
+    public void loop() {
         //Testing code
         odo.update();
         currentHeading = -odo.getHeading(AngleUnit.DEGREES);
@@ -296,7 +294,7 @@ public class State_Machine_Auto extends OpMode{
                 intakeS = intakeState.INTAKE_OFF;
                 break;
             case STOP:
-                stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2])
+                stopCheckCurrent = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                 telemetry.addLine("Moving to Position...");
                 telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
                 telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
@@ -317,14 +315,15 @@ public class State_Machine_Auto extends OpMode{
                 break;
             case MOVE_TO_SHOOT:
                 stopPos[0] = 1206.5;
-                stopPos[0] = 2159.0;
-                stopPos[0] = -40.0;
+                stopPos[1] = 2159.0;
+                stopPos[2] = -40.0;
                 movementS = movementState.STOP;
                 turretS = turretState.FLYWHEEL_ON;
                 stopCheckCurrent = false;
                 stopCheckPrevious = false;
                 chainSequence.remove(0);
                 chainErrorSequence.remove(0);
+                break;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
                     movementS = movementState.NONE;
