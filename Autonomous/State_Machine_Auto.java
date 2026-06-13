@@ -55,20 +55,21 @@ public class State_Machine_Auto extends OpMode {
     
     double[] startPos = {850.9, 3403.6, 0};
     double[] stopPos = new double[3];
-    ArrayList<String> stateSequence = new ArrayList<>();
+    ArrayList<movementState> stateSequence = new ArrayList<>();
     ArrayList<double[][]> chainSequence = new ArrayList<>();
     ArrayList<double[][]> chainErrorSequence = new ArrayList<>();
 
     boolean hasStopped = false;
     
-    double[][] chains;
-    double[][] chainsError;
+    double[][] chains = new double[5][3];
+    double[][] chainsError = new double[5][3];
     
 
     private enum movementState {
         MOVE_TO_SHOOT,
         MOVE_TO_CHAIN,
         STOP,
+        PRE_TELEOP,
         NONE
     }
     private enum turretState {
@@ -78,6 +79,7 @@ public class State_Machine_Auto extends OpMode {
     }
     private enum intakeState {
         INTAKE_ON,
+        INTAKE_LOW,
         INTAKE_OFF
     }
     
@@ -254,14 +256,19 @@ public class State_Machine_Auto extends OpMode {
         
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        stateSequence.add("MOVE_TO_SHOOT");
-        stateSequence.add("MOVE_TO_CHAIN");
-        stateSequence.add("MOVE_TO_SHOOT");
-        stateSequence.add("MOVE_TO_CHAIN");
-        stateSequence.add("MOVE_TO_SHOOT");
-        stateSequence.add("MOVE_TO_CHAIN");
-        stateSequence.add("MOVE_TO_SHOOT");
-        stateSequence.add("PRE_TELEOP");
+        stateSequence.add(movementState.MOVE_TO_SHOOT);
+        stateSequence.add(movementState.STOP);
+        stateSequence.add(movementState.MOVE_TO_CHAIN);
+        stateSequence.add(movementState.MOVE_TO_SHOOT);
+        stateSequence.add(movementState.STOP);
+        stateSequence.add(movementState.MOVE_TO_CHAIN);
+        stateSequence.add(movementState.MOVE_TO_SHOOT);
+        stateSequence.add(movementState.STOP);
+        stateSequence.add(movementState.MOVE_TO_CHAIN);
+        stateSequence.add(movementState.MOVE_TO_SHOOT);
+        stateSequence.add(movementState.STOP);
+        stateSequence.add(movementState.PRE_TELEOP);
+        stateSequence.add(movementState.NONE);
         chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
         chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
         chainErrorSequence.add(new double[][] {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
@@ -313,6 +320,8 @@ public class State_Machine_Auto extends OpMode {
                         intakeS = intakeState.INTAKE_ON;
                     }
                     if (stateTimer.milliseconds() > 550) {
+                        turretS = turretState.FLYWHEEL_LOW;
+                        intakeS = intakeState.INTAKE_OFF;
                         stateSequence.remove(0);
                     }
                 }
@@ -321,15 +330,25 @@ public class State_Machine_Auto extends OpMode {
                 stopPos[0] = 1206.5;
                 stopPos[1] = 2159.0;
                 stopPos[2] = -40.0;
-                movementS = movementState.STOP;
+                stateSequence.remove(0);
                 turretS = turretState.FLYWHEEL_ON;
                 stopCheck = false;
-                chainSequence.remove(0);
-                chainErrorSequence.remove(0);
+                break;
+            case PRE_TELEOP:
+                stopPos[0] = currentX-200;
+                stopPos[1] = currentY-200;
+                stopPos[2] = currentHeading;
+                turretS = turretState.FLYWHEEL_OFF;
+                intakeS = intakeState.INTAKE_OFF;
+                boolean stopCheck = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
+                if (stopCheck) {
+                    stateSequence.remove(0);
                 break;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
-                    movementS = movementState.NONE;
+                    chainSequence.remove(0);
+                    chainErrorSequence.remove(0);
+                    stateSequence.remove(0);
                     break;
                 }
                 chainResult = chain(chains, chainsError);
@@ -344,7 +363,7 @@ public class State_Machine_Auto extends OpMode {
                 } else {
                     chainSequence.remove(0);
                     chainErrorSequence.remove(0);
-                    movementS = movementState.NONE;
+                    stateSequence.remove(0);
                 }
                 break;
         }
@@ -366,14 +385,35 @@ public class State_Machine_Auto extends OpMode {
             case INTAKE_ON:
                 intake.setPower(1);
                 break;
+            case INTAKE_LOW:
+                intake.setPower(0.5);
+                break
             case INTAKE_OFF:
                 intake.setPower(0);
                 break;
         }
         telemetry.update();
+
+
+        chains = chainSequence.get(0);
+        chainsError = chainErrorSequence.get(0);
         
-    
-    
+        switch (stateSequence.get(0)) {
+            case MOVE_TO_SHOOT:
+                movementS = movementState.MOVE_TO_SHOOT;
+                break;
+            case MOVE_TO_CHAIN:
+                movementS = movementState.MOVE_TO_CHAIN;
+                intakeS = intakeState.INTAKE_LOW;
+                break;
+            case PRE_TELEOP:
+                movementS = movementState.PRE_TELEOP;
+                break;
+            case NONE:
+                movementS = movementState.NONE;
+                break;
+                
+        }
     
 }
 }
