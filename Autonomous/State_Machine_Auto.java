@@ -60,6 +60,7 @@ public class State_Machine_Auto extends OpMode {
     ArrayList<double[][]> chainErrorSequence = new ArrayList<>();
 
     boolean hasStopped = false;
+    boolean stopCheck = false;
     
     double[][] chains = new double[5][3];
     double[][] chainsError = new double[5][3];
@@ -340,9 +341,10 @@ public class State_Machine_Auto extends OpMode {
                 stopPos[2] = currentHeading;
                 turretS = turretState.FLYWHEEL_OFF;
                 intakeS = intakeState.INTAKE_OFF;
-                boolean stopCheck = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
+                stopCheck = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                 if (stopCheck) {
                     stateSequence.remove(0);
+                }
                 break;
             case MOVE_TO_CHAIN:
                 if (chains.length == 0) {
@@ -387,7 +389,7 @@ public class State_Machine_Auto extends OpMode {
                 break;
             case INTAKE_LOW:
                 intake.setPower(0.5);
-                break
+                break;
             case INTAKE_OFF:
                 intake.setPower(0);
                 break;
@@ -406,14 +408,18 @@ public class State_Machine_Auto extends OpMode {
                 movementS = movementState.MOVE_TO_CHAIN;
                 intakeS = intakeState.INTAKE_LOW;
                 break;
+            case STOP:
+                movementS = movementState.STOP;
+                stopCheck = false;
+                break;
             case PRE_TELEOP:
                 movementS = movementState.PRE_TELEOP;
+                stopCheck = false;
                 break;
             case NONE:
                 movementS = movementState.NONE;
                 break;
                 
         }
-    
 }
 }
