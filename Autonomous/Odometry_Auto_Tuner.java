@@ -232,7 +232,8 @@ ArrayList<double[]> chainsErrorModular = new ArrayList<>();
 
         flywheel = new Flywheel(hardwareMap);
 
-        odo = new Odometry(hardwareMap, 0, 0, 0);
+        odo = new Odometry(hardwareMap);
+        odo.setStartingPosition(0, 0, 0);
         currentX = 0;
         currentY = 0;
         currentHeading = 0;
