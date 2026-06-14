@@ -11,11 +11,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import org.firstinspires.ftc.teamcode.Classes.Flywheel;
+import org.firstinspires.ftc.teamcode.Classes.Odometry;
 
 @TeleOp(name = "Odometry Opmode File")
 public class Odometry_TeleOp extends OpMode {
 
-    private GoBildaPinpointDriver odo; 
+    private Odometry odo; 
+    private boolean yPressed = true;
 
     private DcMotor frontLeft;
     private DcMotor frontRight;
@@ -30,7 +32,7 @@ public class Odometry_TeleOp extends OpMode {
 
     @Override
     public void init() {
-        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        odo = new Odometry(hardwareMap);
 
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -51,14 +53,6 @@ public class Odometry_TeleOp extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        odo.setOffsets(-7.7008210429995145, 4.118370236374258, DistanceUnit.INCH); 
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD); 
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); 
-
-        odo.resetPosAndIMU();
-        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.RADIANS, 0);
-        odo.setPosition(startingPosition);
     }
 
     @Override
@@ -68,8 +62,15 @@ public class Odometry_TeleOp extends OpMode {
 
         moveRobot();
         
+        if (gamepad1.y && yPressed) {
+            odo.reset();
+            yPressed = false;
+        } else if (!gamepad1.y) {
+            yPressed = true;
+        }
+        
         if (gamepad1.right_trigger > 0.1) {
-            flywheel.setPower(gamepad1.right_trigger);
+            flywheel.setRPM(6000*gamepad1.right_trigger);
         } else {
             flywheel.setZero();
         }
@@ -89,19 +90,29 @@ public class Odometry_TeleOp extends OpMode {
         if (gamepad1.left_bumper) {
             servoPosition -= 0.02;
         }
+        
         servo.setPosition(servoPosition);
+        
+        double vel = (Math.abs(flywheel.getVelocity()[0]) + Math.abs(flywheel.getVelocity()[1])) / 2;
         
         Pose2D pos = odo.getPosition();
         telemetry.addData("X (mm)", pos.getX(DistanceUnit.MM));
         telemetry.addData("Y (mm)", pos.getY(DistanceUnit.MM));
         telemetry.addData("Heading (deg)", pos.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("Target Vel: ", (6000*gamepad1.right_trigger)/60 * 28);
+        telemetry.addData("Vel: ", vel);
+        telemetry.addData("Vel 1: ", Math.abs(flywheel.getVelocity()[0]));
+        telemetry.addData("Vel 2: ", Math.abs(flywheel.getVelocity()[1]));
+        telemetry.addData("Servo Position", servo.getPosition());
+        telemetry.addData("Servo Target", servoPosition);
+        telemetry.addData("bumper", gamepad1.left_bumper);
         telemetry.update();
     }
 
     public void moveRobot() {
         double forward = gamepad1.left_stick_y;
         double strafe = -gamepad1.left_stick_x;
-        double rotate = gamepad1.right_stick_x;
+        double rotate = -gamepad1.right_stick_x;
 
         Pose2D pos = odo.getPosition();
         double heading = pos.getHeading(AngleUnit.RADIANS);
