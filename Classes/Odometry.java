@@ -14,38 +14,40 @@ To use make an object of the class and pass in hardwareMap, then use the methods
 Example:
 private Odometry odo; (Class attribute)
 
-odo = new Odometry(hardwareMap, InitialX, InitialY, initialHeading); (Inside Init)
+odo = new Odometry(hardwareMap); (Inside Init)
+You may want to set the starting position in auto and leave it to be the same in teleop
 
 Methods:
+public void setStartingPosition(double X, double Y, double Heading)
 public void update()
 public void reset()
 public Pose2D getPosition()
 public double getX()
-public double getHeadingRadians()
-public double getHeadingDegrees()
+public double getHeading(AngleUnit Unit)
 */
 
 public class Odometry {
     private GoBildaPinpointDriver odo; 
     private Pose2D pos;
 
-    public Odometry(HardwareMap hardwareMap, double initialX, double initialY, double initialHeading) {
-        init(hardwareMap, initialX, initialY, initialHeading);
+    public Odometry(HardwareMap hardwareMap) {
+        init(hardwareMap);
     }
-    public void init(HardwareMap hardwareMap, double initialX, double initialY, double initialHeading) {
+    public void init(HardwareMap hardwareMap) {
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         odo.setOffsets(-7.7008210429995145, 4.118370236374258, DistanceUnit.INCH); 
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD); 
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD); 
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED); 
 
-        
-        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, initialX, initialY, AngleUnit.RADIANS, initialHeading);
+    }
+    
+    public void setStartingPosition(double X, double Y, double Heading) {
+        Pose2D startingPosition = new Pose2D(DistanceUnit.MM, X, Y, AngleUnit.DEGREES, Heading);
         odo.setPosition(startingPosition);
-        
         pos = startingPosition;
     }
-
+    
     public void update() {
         odo.update();
         pos = odo.getPosition();
