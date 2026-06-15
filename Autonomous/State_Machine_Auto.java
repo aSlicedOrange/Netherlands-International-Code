@@ -62,8 +62,8 @@ public class State_Machine_Auto extends OpMode {
     boolean hasStopped = false;
     boolean stopCheck = false;
     
-    double[][] chains = new double[5][3];
-    double[][] chainsError = new double[5][3];
+    double[][] chains = new double[3][3];
+    double[][] chainsError = new double[3][3];
     
 
     private enum movementState {
@@ -240,7 +240,8 @@ public class State_Machine_Auto extends OpMode {
         flywheel = new Flywheel(hardwareMap);
         intake = hardwareMap.get(DcMotor.class, "intakeMotor");
 
-        odo = new Odometry(hardwareMap, startPos[0], startPos[1], startPos[2]);
+        odo = new Odometry(hardwareMap);
+        odo.setStartingPosition(startPos[0], startPos[1], startPos[2]);
         currentX = 0;
         currentY = 0;
         currentHeading = 0;
@@ -270,10 +271,12 @@ public class State_Machine_Auto extends OpMode {
         stateSequence.add(movementState.STOP);
         stateSequence.add(movementState.PRE_TELEOP);
         stateSequence.add(movementState.NONE);
-        chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
-        chainSequence.add(new double[][] {{1000, 1000, 0}, {-1000, -1000, -90}, {2000, 0, 180}, {0, 0, 0}});
-        chainErrorSequence.add(new double[][] {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
-        chainErrorSequence.add(new double[][] {{250, 250, 0.5}, {250, 250, 0.5}, {15, 15, 0.25}, {10, 10, 0.1}});
+        chainSequence.add(new double[][] {{936, 1919.7, -90}, {484.2, 1941.2, -90}, {406.4, 1866.9, -90}});
+        chainSequence.add(new double[][] {{999.5, 1360.9, -90}, {215.9, 1397, -90}, {698.5, 1447.8, -70}});
+        chainSequence.add(new double[][] {{330.2, 1440.2, -50}, {215.9, 1440.2, -50}, {869.9, 1936.7, -60}});
+        chainErrorSequence.add(new double[][] {{100, 250, 0.5}, {50, 100, 0.5}, {10, 10, 0.1}});
+        chainErrorSequence.add(new double[][] {{100, 250, 0.5}, {10, 10, 0.1}, {250, 250, 10}});
+        chainErrorSequence.add(new double[][] {{10, 10, 0.1}, {10, 10, 0.1}, {400, 400, 10}});
         chains = chainSequence.get(0);
         chainsError = chainErrorSequence.get(0);
     }
@@ -354,7 +357,7 @@ public class State_Machine_Auto extends OpMode {
                     break;
                 }
                 chainResult = chain(chains, chainsError);
-                if (chainResult[0][0].length > 0) {
+                if (chainResult[0].length > 0) {
                     chains = chainResult[0];
                     chainsError = chainResult[1];
                     telemetry.addLine("Following Chain...");
