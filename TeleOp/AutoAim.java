@@ -17,6 +17,7 @@ public class AutoAim extends LinearOpMode {
 
     private DcMotorEx turret;
     private DcMotorEx flyL, flyR;
+    private DcMotor intake;
     private Servo backPlate;
 
     private AprilTagProcessor aprilTag;
@@ -54,7 +55,9 @@ public class AutoAim extends LinearOpMode {
         flyL = hardwareMap.get(DcMotorEx.class, "flyL");
         flyR = hardwareMap.get(DcMotorEx.class, "flyR");
         backPlate = hardwareMap.get(Servo.class, "backPlate");
+        intake = hardwareMap.get(DcMotor.class, "intake");
 
+        intake.setDirection(DcMotorEx.Direction.REVERSE);
         flyR.setDirection(DcMotorEx.Direction.REVERSE);
         turret.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         turret.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -150,7 +153,7 @@ public class AutoAim extends LinearOpMode {
     private void shoot() {
 
         // replace with shooter code
-
+        intake.setPower(1);
         telemetry.addLine("SHOOT!");
     }
 
