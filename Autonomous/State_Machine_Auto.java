@@ -161,8 +161,8 @@ public class State_Machine_Auto extends OpMode {
         double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
 
         
-        double[] Forward = getForwardPower(fieldErrorY);
-        double[] Strafe = getStrafePower(fieldErrorX);
+        double[] Forward = getForwardPower(robotErrorY);
+        double[] Strafe = getStrafePower(robotErrorX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
