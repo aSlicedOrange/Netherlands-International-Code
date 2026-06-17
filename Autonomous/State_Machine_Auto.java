@@ -46,14 +46,14 @@ public class State_Machine_Auto extends OpMode {
     double divForwardDifference = 400.0;
     double divStrafeDifference = 300.0;
     
-    double targetMoveHeading;
-    double targetMoveX;
-    double targetMoveY;
 
     double flywheelTargetRPM = 4000;
     double flywheelLowRPM = 1500;
     
     double[] startPos = {850.9, 3403.6, 0};
+    //double[] startPos = {1206.5, 2159.0, 0};
+    //double[] startPos = {1206.5, 3403.6, 0};
+    
     double[] stopPos = new double[3];
     ArrayList<movementState> stateSequence = new ArrayList<>();
     ArrayList<double[][]> chainSequence = new ArrayList<>();
@@ -113,7 +113,8 @@ public class State_Machine_Auto extends OpMode {
         return (rotateMotorPower);
     }
 
-    public double[] getForwardPower(double errorY) {
+    public double[] getForwardPower(double currentY, double targetY) {
+        double errorY = targetY - currentY; 
         double divRatio = errorY / divForwardDifference;
         double maxPower = 1;
 
@@ -132,7 +133,9 @@ public class State_Machine_Auto extends OpMode {
 
     }
 
-    public double[] getStrafePower(double errorX) {        
+    public double[] getStrafePower(double currentX, double targetX) {
+        double errorX = targetX - currentX;
+        
         double divRatio = errorX / divStrafeDifference;
         double maxPower = 1;
 
@@ -159,10 +162,13 @@ public class State_Machine_Auto extends OpMode {
     
         double robotErrorX = fieldErrorX * Math.cos(headingRad) + fieldErrorY * Math.sin(headingRad);
         double robotErrorY = -fieldErrorX * Math.sin(headingRad) + fieldErrorY * Math.cos(headingRad);
-
+    
+        //double[] Forward = getForwardPower(robotErrorY);
+        //double[] Strafe = getStrafePower(0, robotErrorX);
+        //double[] Rotate = getRotatePower(currentHeading, targetHeading);
         
-        double[] Forward = getForwardPower(robotErrorY);
-        double[] Strafe = getStrafePower(robotErrorX);
+        double[] Forward = getForwardPower(currentY, targetY);
+        double[] Strafe = getStrafePower(currentX, targetX);
         double[] Rotate = getRotatePower(currentHeading, targetHeading);
 
             
@@ -190,11 +196,7 @@ public class State_Machine_Auto extends OpMode {
         backLeft.setPower(newWheelSpeeds[2]);
         backRight.setPower(newWheelSpeeds[3]);
 
-        if (Math.abs(fieldErrorX) <= minStrafeDifference && Math.abs(fieldErrorY) <= minForwardDifference && Math.abs(targetHeading-currentHeading) <= minRotateDifference) {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
+        if (newWheelSpeeds[0] == 0 && newWheelSpeeds[1] == 0 && newWheelSpeeds[2] == 0 && newWheelSpeeds[3] == 0) {
             return true;
         } else {
             return false;
@@ -236,12 +238,13 @@ public class State_Machine_Auto extends OpMode {
     @Override
     public void init(){
         stateTimer = new ElapsedTime();
+        stopTimer = new ElapsedTime();
         
         flywheel = new Flywheel(hardwareMap);
         intake = hardwareMap.get(DcMotor.class, "intakeMotor");
 
         odo = new Odometry(hardwareMap);
-        odo.setStartingPosition(startPos[0], startPos[1], startPos[2]);
+        odo.setStartingPosition(-startPos[1], startPos[0], -startPos[2]);
         currentX = 0;
         currentY = 0;
         currentHeading = 0;
@@ -258,6 +261,7 @@ public class State_Machine_Auto extends OpMode {
         
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        
         stateSequence.add(movementState.MOVE_TO_SHOOT);
         stateSequence.add(movementState.STOP);
         stateSequence.add(movementState.MOVE_TO_CHAIN);
@@ -311,9 +315,9 @@ public class State_Machine_Auto extends OpMode {
             case STOP:
                 boolean stopCheck = moveRobot(stopPos[0], stopPos[1], stopPos[2]);
                 telemetry.addLine("Moving to Position...");
-                telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, targetMoveX, 100*(targetMoveX-currentX));
-                telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, targetMoveY, 100*(targetMoveY-currentY));
-                telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, targetMoveHeading, 100*(targetMoveHeading-currentHeading));
+                telemetry.addData("X Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentX, stopPos[0], 100*(stopPos[0]-currentX));
+                telemetry.addData("Y Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentY, stopPos[1], 100*(stopPos[1]-currentY));
+                telemetry.addData("Heading Data", "Current: %.1f | Target: %.1f | Difference * 100: %.1f", currentHeading, stopPos[2], 100*(stopPos[2]-currentHeading));
                 if (!stopCheck) {
                     stopTimer.reset();
                 }
@@ -397,6 +401,10 @@ public class State_Machine_Auto extends OpMode {
                 intake.setPower(0);
                 break;
         }
+        telemetry.addData("stateSequence: ", stateSequence.get(0));
+        telemetry.addData("movementS: ", movementS);
+        telemetry.addData("turretS: ", turretS);
+        telemetry.addData("intakeS: ", intakeS);
         telemetry.update();
 
 
