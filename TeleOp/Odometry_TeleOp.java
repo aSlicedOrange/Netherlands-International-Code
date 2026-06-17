@@ -27,8 +27,13 @@ public class Odometry_TeleOp extends OpMode {
     private DcMotor intake;
     private Flywheel flywheel;
     
-    private Servo servo;
-    private double servoPosition;
+    private Servo backplate;
+    private Servo stopper;
+    private double backplatePosition;
+    private double stopperPosition;
+
+    private double[] blueBoxPos = {2438.4, 609.6, 0};
+    private double[] redBoxPos = {762, 609.6, 0};
 
     @Override
     public void init() {
@@ -41,8 +46,8 @@ public class Odometry_TeleOp extends OpMode {
         
         flywheel = new Flywheel(hardwareMap);
         intake = hardwareMap.get(DcMotor.class, "intakeMotor");
-        servo = hardwareMap.get(Servo.class, "servo");
-
+        backplate = hardwareMap.get(Servo.class, "backplate");
+        stopper = hardwareMap.get(Servo.class, "stopper");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -83,15 +88,25 @@ public class Odometry_TeleOp extends OpMode {
             intake.setPower(0);
         }
 
-        servoPosition = servo.getPosition();
+        backplatePosition = backplate.getPosition();
+        stopperPosition = stopper.getPosition();
+
         if (gamepad1.right_bumper) { 
-            servoPosition += 0.02;
+            backplatePosition += 0.02;
         }
         if (gamepad1.left_bumper) {
-            servoPosition -= 0.02;
+            backplatePosition -= 0.02;
         }
         
-        servo.setPosition(servoPosition);
+        if (gamepad1.dpad_right) { 
+            stopperPosition += 0.25;
+        }
+        if (gamepad1.dpad_left) {
+            stopperPosition -= 0.25;
+        }
+        backplate.setPosition(backplatePosition);
+        stopper.setPosition(stopperPosition);
+
         
         double vel = (Math.abs(flywheel.getVelocity()[0]) + Math.abs(flywheel.getVelocity()[1])) / 2;
         
@@ -103,8 +118,7 @@ public class Odometry_TeleOp extends OpMode {
         telemetry.addData("Vel: ", vel);
         telemetry.addData("Vel 1: ", Math.abs(flywheel.getVelocity()[0]));
         telemetry.addData("Vel 2: ", Math.abs(flywheel.getVelocity()[1]));
-        telemetry.addData("Servo Position", servo.getPosition());
-        telemetry.addData("Servo Target", servoPosition);
+        telemetry.addData("Servo Position", backplate.getPosition());
         telemetry.addData("bumper", gamepad1.left_bumper);
         telemetry.update();
     }
