@@ -42,6 +42,10 @@ public class Movement {
     private double divRotateDifference = 90.0;
     private double divForwardDifference = 400.0;
     private double divStrafeDifference = 300.0;
+
+    double currentX;
+    double currentY;
+    double currentHeading;
 }
 
 public Movement(HardwareMap hardwareMap, Odometry odo) {
@@ -55,12 +59,19 @@ public void init(HardwareMap hardwareMap, Odometry odo) {
   backRight = hardwareMap.get(DcMotorEx.class, "backRight");
   backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
+  frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+  backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+  frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+  backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+  frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+  backRight.setDirection(DcMotorSimple.Direction.REVERSE);
   
+  currentHeading = -odo.getHeading(AngleUnit.DEGREES);
+  currentX = odo.getY();
+  currentY = -odo.getX();
   
-
-    double currentX;
-    double currentY;
-    double currentHeading;
+}
 
     public double[] getRotatePower(double currentHeading, double targetHeading) {
         double errorHeading = targetHeading - currentHeading;
