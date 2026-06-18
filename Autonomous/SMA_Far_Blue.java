@@ -346,7 +346,7 @@ public class SMA_Far_Blue extends OpMode {
                     } else {
                         intakeS = intakeState.INTAKE_OFF;
                     }
-                    if (stateTimer.milliseconds() > 1000) {
+                    if (stateTimer.milliseconds() > 1500) {
                         turretS = turretState.FLYWHEEL_LOW;
                         intakeS = intakeState.INTAKE_OFF;
                         stopper.setPosition(0);
